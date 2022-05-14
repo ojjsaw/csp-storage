@@ -3,3 +3,19 @@
 
     https://jupyterlab.readthedocs.io/en/stable/developer/css.html
 */
+
+.intro-page-view {
+    background-color: white;
+    height: 100%;
+    align-items: center;
+}
+
+.test1-icon {
+    background-image: url(icon.svg);
+}
+
+.centered {
+    display: grid;
+    justify-content: center;
+    align-items: center;
+}
