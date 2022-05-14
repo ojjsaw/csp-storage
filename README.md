@@ -5,9 +5,12 @@ conda create -n lab-csp-storage --override-channels --strict-channel-priority -c
 
 conda activate lab-csp-storage
 
-python -m pip install -e . && jupyter labextension develop . --overwrite && jupyter server extension enable mix && jlpm run build
+python -m pip install -e . && jupyter labextension develop . --overwrite && jupyter server extension enable csp_storage && jlpm run build
 
 jupyter lab
+
+// In a new terminal with same conda envr, for non python backend, frontend dev without manual rebuild
+jlpm run watch
 
 conda deactivate
 ```
