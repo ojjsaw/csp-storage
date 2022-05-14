@@ -33,6 +33,7 @@ jupyter server extension enable csp_storage
 
 jupyter lab
 
-pip install csp_storage-0.1.0-py3-none-any.whl
+jupyter server extension disable csp_storage
+pip uninstall csp_storage-0.1.0-py3-none-any.whl
 conda deactivate
 ```
