@@ -7,6 +7,8 @@ conda activate lab-csp-storage
 
 python -m pip install -e . && jupyter labextension develop . --overwrite && jupyter server extension enable csp_storage && jlpm run build
 
+pip install numpy boto3
+
 jupyter lab
 
 // In a new terminal with same conda envr, for non python backend, frontend dev without manual rebuild

@@ -58,7 +58,8 @@ setup_args = dict(
     packages=setuptools.find_packages(),
     install_requires=[
         "jupyter_server>=1.6,<2",
-        "numpy"
+        "numpy",
+        "boto3"
     ],
     zip_safe=False,
     include_package_data=True,

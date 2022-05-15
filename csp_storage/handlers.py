@@ -8,12 +8,16 @@ import tornado
 import numpy
 import getpass
 import os
+import boto3
+from botocore.exceptions import ClientError
+import logging
 
 ACCESS_KEY_ID = ""
 SECRET_ACCESS_KEY = ""
 BUCKET_NAME = ""
 STORAGE_PATH = ""
 S3_KEYS = []
+IS_VALID = False
 
 class NumpyArrayEncoder(JSONEncoder):
     def default(self, obj):
@@ -37,12 +41,25 @@ class RouteHandler(APIHandler):
     def post(self):
         # input_data is a dictionary with a key "name"
         input_data = self.get_json_body()
-        global STORAGE_PATH, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME
+        global STORAGE_PATH, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, IS_VALID
         ACCESS_KEY_ID = input_data["ACCESS_KEY_ID"]
         SECRET_ACCESS_KEY = input_data["SECRET_ACCESS_KEY"]
         BUCKET_NAME = input_data["BUCKET_NAME"]
+        try:
+            # Retrieve the list of existing buckets
+            session = boto3.Session( 
+                aws_access_key_id=ACCESS_KEY_ID, 
+                aws_secret_access_key=SECRET_ACCESS_KEY)
+            
+            s3 = session.resource('s3')
+            if s3.Bucket(BUCKET_NAME) in s3.buckets.all():
+                IS_VALID = True
+        except ClientError as e:
+            #logging.error(e)
+            IS_VALID = False
+
         STORAGE_PATH = os.path.join("/home", getpass.getuser(), "cloud-storage", "s3",BUCKET_NAME)
-        data = {"greetings": "Test full user Path {} with bucketname!".format(STORAGE_PATH)}
+        data = {"greetings": "Test full user Path {0} with creds {1}!".format(STORAGE_PATH, IS_VALID)}
         self.finish(json.dumps(data))
 
 class ListHandler(APIHandler):
@@ -52,21 +69,58 @@ class ListHandler(APIHandler):
     # Jupyter server
     @tornado.web.authenticated
     def get(self):
-        global S3_KEYS
+        global STORAGE_PATH, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, IS_VALID, S3_KEYS
         S3_KEYS.clear()
-        S3_KEYS.append("mytest/path/t1.txt")
-        S3_KEYS.append("someother/path/t2/")
-        S3_KEYS.append("somepath/to/t3.txt")
-        S3_KEYS.append(STORAGE_PATH)
+        if IS_VALID is True:
+            try:
+                # Retrieve the list of existing buckets
+                session = boto3.Session( 
+                aws_access_key_id=ACCESS_KEY_ID, 
+                aws_secret_access_key=SECRET_ACCESS_KEY)
+                
+                s3 = session.resource('s3')
+                my_bucket = s3.Bucket(BUCKET_NAME)
+       
+                for my_bucket_object in my_bucket.objects.all():
+                    S3_KEYS.append(my_bucket_object.key)
+            except ClientError as e:
+                #logging.error(e)
+                IS_VALID = False
+        else:
+            S3_KEYS.append(STORAGE_PATH)
+            for i in range(30):
+                S3_KEYS.append("mock/s3path/file" + str(i) + ".txt")
         self.finish(json.dumps(S3_KEYS))
 
     @tornado.web.authenticated
     def post(self):
-        global S3_KEYS
-        # input_data is a dictionary with a key "name"
         input_data = self.get_json_body()
         index = input_data["index"]
-        data = {"greetings": "Downlinding index {0} with key {1}!".format(index, S3_KEYS[index])}
+        global STORAGE_PATH, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, IS_VALID, S3_KEYS
+        if IS_VALID is True:
+            try:
+                # Retrieve the list of existing buckets
+                session = boto3.Session( 
+                aws_access_key_id=ACCESS_KEY_ID, 
+                aws_secret_access_key=SECRET_ACCESS_KEY)
+        
+                s3 = session.resource('s3')
+                my_bucket = s3.Bucket(BUCKET_NAME)
+                #STORAGE_PATH = os.path.join("/home", getpass.getuser(), "cloud-storage", "s3",BUCKET_NAME)
+                # create directory for uID
+                isExist = os.path.exists(STORAGE_PATH)
+                if not isExist:
+                    os.makedirs(STORAGE_PATH)
+
+                path, filename = os.path.split(S3_KEYS[index])
+                devcloud_file_path = os.path.join(STORAGE_PATH, filename)
+                my_bucket.download_file(S3_KEYS[index], devcloud_file_path)
+                data = {"greetings": "Downloaded index {0} with key {1}!".format(index, S3_KEYS[index])}
+            except ClientError as e:
+                IS_VALID = False
+        else:
+            # input_data is a dictionary with a key "name"
+            data = {"greetings": "fake download msg for index {0} with key {1}!".format(index, S3_KEYS[index])}
         self.finish(json.dumps(data))
 
 def setup_handlers(web_app):
