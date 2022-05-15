@@ -4,8 +4,6 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 
-import { requestAPI } from './handler';
-
 import { IntroWidget } from './components/intro';
 
 /**
@@ -28,15 +26,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
     restorer.add(introWidget, 'intropage');
     app.shell.add(introWidget, 'left', { rank: 1000 });
 
-    requestAPI<any>('get_example')
-      .then(data => {
-        console.log(data);
-      })
-      .catch(reason => {
-        console.error(
-          `The mix server extension appears to be missing.\n${reason}`
-        );
-      });
   }
 };
 

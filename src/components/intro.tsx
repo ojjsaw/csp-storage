@@ -18,6 +18,9 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Checkbox from '@material-ui/core/Checkbox';
 import ListItemText from '@material-ui/core/ListItemText';
 import FolderIcon from '@material-ui/icons/Folder';
+import RefreshIcon from '@material-ui/icons/Refresh';
+import { IconButton } from '@material-ui/core';
+
 interface IProps { }
 
 export enum PageType {
@@ -49,14 +52,14 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
   OnSelectCSP = async () => {
     // GET request
     try {
-      const data = await requestAPI<any>('get_example');
+      const data = await requestAPI<any>('init_s3_api');
       this.setState({
         myval: JSON.stringify(data),
         page: PageType.CSPDetails
       });
       console.log(data);
     } catch (reason) {
-      console.error(`The mix server extension appears to be missing.\n${reason}`);
+      console.error(`The csp_storage server extension appears to be missing.\n${reason}`);
     }
   }
 
@@ -70,17 +73,19 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
       SECRET_ACCESS_KEY: data.get('SECRET_ACCESS_KEY'),
       BUCKET_NAME: data.get('BUCKET_NAME'),
     };
-    // GET request
+    // POST request
     try {
-      const reply = await requestAPI<any>('get_example', {
+      const reply = await requestAPI<any>('init_s3_api', {
         body: JSON.stringify(dataToSend),
         method: 'POST',
       });
+      // todo check if credentials & bucket was right, if not state on same page with error
+      // if is right, move to next list page
+      // for now skip to next page either ways.
       // const dataString = JSON.stringify(reply);
       this.setState({
         myval: JSON.stringify(reply),
         page: PageType.ViewList,
-        listArray: reply
       });
       console.log(reply);
     } catch (reason) {
@@ -88,7 +93,43 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
     }
   }
 
+  OnRefreshList = async () => {
+    // GET request
+    try {
+      const data = await requestAPI<any>('list_api');
+      this.setState({
+        myval: JSON.stringify(data),
+        page: PageType.ViewList,
+        listArray: data
+      });
+      console.log(data);
+    } catch (reason) {
+      console.error(`The csp_storage server extension appears to be missing.\n${reason}`);
+    }
+  }
 
+  OnListClick = async (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>,
+    index: number,
+  ) => {
+
+    const dataToSend = { index: index };
+    // POST request
+    try {
+      const reply = await requestAPI<any>('list_api', {
+        body: JSON.stringify(dataToSend),
+        method: 'POST',
+      });
+      this.setState({
+        myval: JSON.stringify(reply),
+        page: PageType.ViewList,
+      });
+      console.log(reply);
+    } catch (reason) {
+      console.error(`The csp_storage server extension appears to be missing.\n${reason}`);
+    }
+
+  };
 
   render() {
     const pageState = this.state.page;
@@ -143,10 +184,19 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
         break;
       case PageType.ViewList:
         _renderTest = <div>
-          <List component="nav" aria-label="main mailbox folders">
+          <Grid item>
+                    <IconButton name="refreshList" onClick={() => this.OnRefreshList()}>
+            <RefreshIcon color="primary" />
+          </IconButton>
+          </Grid>
+          <List component="nav" aria-label="main mailbox folders" style={{maxHeight: '500px', overflow: 'auto'}}>
           {_viewlist.map((val, i) => 
-          <div>
-          <ListItem dense button>
+          <Grid item>
+          <ListItem 
+            dense 
+            button
+            onClick={(event) => this.OnListClick(event, i)}
+          >
           <ListItemIcon>
                 <Checkbox />
               </ListItemIcon>
@@ -155,9 +205,10 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
               </ListItemIcon>
           <ListItemText primary={val} key={i} />
           </ListItem>
-          </div>
+          </Grid> 
           )}
           </List>
+          
         </div>;
         //_renderTest = <div>{this.state.myval}</div>;
         break;
