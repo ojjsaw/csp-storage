@@ -7,10 +7,12 @@ import tornado
 
 import numpy
 import getpass
+import os
 
 ACCESS_KEY_ID = ""
 SECRET_ACCESS_KEY = ""
 BUCKET_NAME = ""
+STORAGE_PATH = ""
 
 class NumpyArrayEncoder(JSONEncoder):
     def default(self, obj):
@@ -36,8 +38,15 @@ class RouteHandler(APIHandler):
         ACCESS_KEY_ID = input_data["ACCESS_KEY_ID"]
         SECRET_ACCESS_KEY = input_data["SECRET_ACCESS_KEY"]
         BUCKET_NAME = input_data["BUCKET_NAME"]
-        data = {"greetings": "Hello {0} with bucket {1}, enjoy JupyterLab!".format(getpass.getuser(),input_data["BUCKET_NAME"])}
-        self.finish(json.dumps(data))
+        STORAGE_PATH = os.path.join("/home", getpass.getuser(), "cloud-storage", "s3",BUCKET_NAME)
+        data = {"greetings": "Test full user Path {} with bucketname!".format(STORAGE_PATH)}
+
+        s3Keys = []
+        s3Keys.append("mytest/path/t1.txt")
+        s3Keys.append("someother/path/t2/")
+        s3Keys.append("somepath/to/t3.txt")
+        s3Keys.append(STORAGE_PATH)
+        self.finish(json.dumps(s3Keys))
 
 
 def setup_handlers(web_app):

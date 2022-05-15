@@ -12,10 +12,15 @@ import Grid from '@material-ui/core/Grid/Grid';
 
 import { requestAPI } from '../handler';
 import TextField from '@material-ui/core/TextField';
-
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import Checkbox from '@material-ui/core/Checkbox';
+import ListItemText from '@material-ui/core/ListItemText';
+import FolderIcon from '@material-ui/icons/Folder';
 interface IProps { }
 
-export enum PageType{
+export enum PageType {
   SelectCSP = 0,
   CSPDetails = 1,
   ViewList = 2
@@ -25,32 +30,34 @@ export interface IDataProps {
   myval: string;
   showlist: boolean;
   page: PageType;
+  listArray: Array<any>;
 }
 
 export class IntroComponent extends React.Component<IProps, IDataProps> {
 
-  constructor(props: IProps){
+  constructor(props: IProps) {
     super(props);
     this.state = {
       myval: 'hello',
       showlist: false,
-      page: PageType.SelectCSP
+      page: PageType.SelectCSP,
+      listArray: []
     };
 
   }
 
   OnSelectCSP = async () => {
-       // GET request
-       try {
-        const data = await requestAPI<any>('get_example');
-        this.setState({
-          myval: JSON.stringify(data),
-          page: PageType.CSPDetails
-        });
-        console.log(data);
-      } catch (reason) {
-        console.error(`The mix server extension appears to be missing.\n${reason}`);
-      }
+    // GET request
+    try {
+      const data = await requestAPI<any>('get_example');
+      this.setState({
+        myval: JSON.stringify(data),
+        page: PageType.CSPDetails
+      });
+      console.log(data);
+    } catch (reason) {
+      console.error(`The mix server extension appears to be missing.\n${reason}`);
+    }
   }
 
   OnCSPDetails: React.FormEventHandler<HTMLFormElement> = async (event) => {
@@ -58,7 +65,7 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     console.log(data.get('ACCESS_KEY_ID'));
-    const dataToSend = { 
+    const dataToSend = {
       ACCESS_KEY_ID: data.get('ACCESS_KEY_ID'),
       SECRET_ACCESS_KEY: data.get('SECRET_ACCESS_KEY'),
       BUCKET_NAME: data.get('BUCKET_NAME'),
@@ -69,74 +76,100 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
         body: JSON.stringify(dataToSend),
         method: 'POST',
       });
-     this.setState({
-       myval: JSON.stringify(data),
-       page: PageType.ViewList
-     });
-     console.log(reply);
-   } catch (reason) {
-     console.error(`The mix server extension appears to be missing.\n${reason}`);
-   }
+      // const dataString = JSON.stringify(reply);
+      this.setState({
+        myval: JSON.stringify(reply),
+        page: PageType.ViewList,
+        listArray: reply
+      });
+      console.log(reply);
+    } catch (reason) {
+      console.error(`The csp_storage server extension appears to be missing.\n${reason}`);
+    }
   }
+
+
 
   render() {
     const pageState = this.state.page;
+    const _viewlist = this.state.listArray;
     let _renderTest;
-    switch(pageState){
+    switch (pageState) {
       case PageType.SelectCSP:
         _renderTest = <div>
           <Grid item>
-        <InputLabel shrink htmlFor="age-native-label-placeholder">Cloud Storage Provider</InputLabel>
-          <NativeSelect>
-            <option value={10}>Amazon S3</option>
-            <option value={20} disabled>Azure Blob Storage</option>
-            <option value={30} disabled>Google Cloud Storage</option>
-          </NativeSelect>
+            <InputLabel shrink htmlFor="age-native-label-placeholder">Cloud Storage Provider</InputLabel>
+            <NativeSelect>
+              <option value={10}>Amazon S3</option>
+              <option value={20} disabled>Azure Blob Storage</option>
+              <option value={30} disabled>Google Cloud Storage</option>
+            </NativeSelect>
           </Grid>
           <Grid item>
-          <FormHelperText>Storage Provider to import from.</FormHelperText>
+            <FormHelperText>Storage Provider to import from.</FormHelperText>
           </Grid>
           <Grid item>
-          <Button variant="contained" color="primary" onClick={ () => this.OnSelectCSP() }>
-            Configure
-          </Button>
+            <Button variant="contained" color="primary" onClick={() => this.OnSelectCSP()}>
+              Configure
+            </Button>
           </Grid>
-      </div>;
-      break;
+        </div>;
+        break;
       case PageType.CSPDetails:
         _renderTest = <div>
           <form noValidate autoComplete="off" onSubmit={this.OnCSPDetails}>
             <Grid item>
-            <InputLabel shrink htmlFor="age-native-label-placeholder">Access Key</InputLabel>
-            <TextField required name="ACCESS_KEY_ID" id="ACCESS_KEY_ID" label="" variant="outlined" />
+              <InputLabel shrink htmlFor="age-native-label-placeholder">Access Key</InputLabel>
+              <TextField required name="ACCESS_KEY_ID" id="ACCESS_KEY_ID" label="" variant="outlined" />
             </Grid>
 
             <Grid item>
-            <InputLabel shrink htmlFor="age-native-label-placeholder">Secret Access Key</InputLabel>
-            <TextField required name="SECRET_ACCESS_KEY" id="SECRET_ACCESS_KEY" label="" variant="outlined" />
+              <InputLabel shrink htmlFor="age-native-label-placeholder">Secret Access Key</InputLabel>
+              <TextField required name="SECRET_ACCESS_KEY" id="SECRET_ACCESS_KEY" label="" variant="outlined" />
             </Grid>
 
             <Grid item>
-            <InputLabel shrink htmlFor="age-native-label-placeholder">Bucket Name</InputLabel>
-            <TextField required name="BUCKET_NAME" id="BUCKET_NAME" label="" variant="outlined" />
+              <InputLabel shrink htmlFor="age-native-label-placeholder">Bucket Name</InputLabel>
+              <TextField required name="BUCKET_NAME" id="BUCKET_NAME" label="" variant="outlined" />
             </Grid>
 
             <Grid item>
-            <Button variant="contained" type="submit" color="primary">
-            Submit
-            </Button>
+              <Button variant="contained" type="submit" color="primary">
+                Submit
+              </Button>
             </Grid>
           </form>
         </div>;
         break;
       case PageType.ViewList:
-        _renderTest = <div>{this.state.myval}</div>;
+        _renderTest = <div>
+          <List component="nav" aria-label="main mailbox folders">
+            <div>
+            <ListItem dense button>
+              <ListItemIcon>
+                <Checkbox />
+              </ListItemIcon>
+              <ListItemIcon>
+                <FolderIcon />
+              </ListItemIcon>
+              <ListItemText primary={_viewlist[0]} />
+            </ListItem>
+            <ListItem dense button>
+              <ListItemIcon>
+                <FolderIcon />
+              </ListItemIcon>
+              <ListItemText primary="Drafts" />
+            </ListItem>
+            </div>
+          </List>
+        </div>;
+        //_renderTest = <div>{this.state.myval}</div>;
         break;
       default:
         _renderTest = <div>hello</div>;
         break;
     }
-    
+
     return (
       <div>
         <Grid container
@@ -147,9 +180,9 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
           style={{ minHeight: '30vh' }}>
 
           <Grid item>
-          <Typography variant="h6" component="h1" gutterBottom>
-            Intel® DevCloud Storage Connector
-          </Typography>
+            <Typography variant="h6" component="h1" gutterBottom>
+              Intel® DevCloud Storage Connector
+            </Typography>
           </Grid>
 
           {_renderTest}
