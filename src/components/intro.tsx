@@ -144,23 +144,19 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
       case PageType.ViewList:
         _renderTest = <div>
           <List component="nav" aria-label="main mailbox folders">
-            <div>
-            <ListItem dense button>
-              <ListItemIcon>
+          {_viewlist.map((val, i) => 
+          <div>
+          <ListItem dense button>
+          <ListItemIcon>
                 <Checkbox />
               </ListItemIcon>
               <ListItemIcon>
                 <FolderIcon />
               </ListItemIcon>
-              <ListItemText primary={_viewlist[0]} />
-            </ListItem>
-            <ListItem dense button>
-              <ListItemIcon>
-                <FolderIcon />
-              </ListItemIcon>
-              <ListItemText primary="Drafts" />
-            </ListItem>
-            </div>
+          <ListItemText primary={val} key={i} />
+          </ListItem>
+          </div>
+          )}
           </List>
         </div>;
         //_renderTest = <div>{this.state.myval}</div>;
