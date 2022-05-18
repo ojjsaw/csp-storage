@@ -58,7 +58,12 @@ class RouteHandler(APIHandler):
             #logging.error(e)
             IS_VALID = False
 
-        STORAGE_PATH = os.path.join("/home", getpass.getuser(), "cloud-storage", "s3",BUCKET_NAME)
+        current_user = getpass.getuser()
+        if current_user == "build":
+            STORAGE_PATH = os.path.join("/data", "cloud-storage", "s3",BUCKET_NAME)
+        else:
+            STORAGE_PATH = os.path.join("/home", getpass.getuser(), "cloud-storage", "s3",BUCKET_NAME)
+
         data = {"greetings": "Test full user Path {0} with creds {1}!".format(STORAGE_PATH, IS_VALID)}
         self.finish(json.dumps(data))
 
@@ -85,7 +90,7 @@ class ListHandler(APIHandler):
                     S3_KEYS.append(my_bucket_object.key)
             except ClientError as e:
                 #logging.error(e)
-                IS_VALID = False
+                IS_VALID = IS_VALID
         else:
             S3_KEYS.append(STORAGE_PATH)
             for i in range(30):
@@ -95,33 +100,56 @@ class ListHandler(APIHandler):
     @tornado.web.authenticated
     def post(self):
         input_data = self.get_json_body()
-        index = input_data["index"]
+        msg_type = input_data["my_type"]
         global STORAGE_PATH, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, IS_VALID, S3_KEYS
-        if IS_VALID is True:
-            try:
-                # Retrieve the list of existing buckets
-                session = boto3.Session( 
-                aws_access_key_id=ACCESS_KEY_ID, 
-                aws_secret_access_key=SECRET_ACCESS_KEY)
-        
-                s3 = session.resource('s3')
-                my_bucket = s3.Bucket(BUCKET_NAME)
-                #STORAGE_PATH = os.path.join("/home", getpass.getuser(), "cloud-storage", "s3",BUCKET_NAME)
-                # create directory for uID
-                isExist = os.path.exists(STORAGE_PATH)
-                if not isExist:
-                    os.makedirs(STORAGE_PATH)
+        if msg_type == "download":
+            index = input_data["index"]         
+            if IS_VALID is True:
+                try:
+                    # Retrieve the list of existing buckets
+                    session = boto3.Session( 
+                    aws_access_key_id=ACCESS_KEY_ID, 
+                    aws_secret_access_key=SECRET_ACCESS_KEY)
+            
+                    s3 = session.resource('s3')
+                    my_bucket = s3.Bucket(BUCKET_NAME)
+                    #STORAGE_PATH = os.path.join("/home", getpass.getuser(), "cloud-storage", "s3",BUCKET_NAME)
+                    # create directory for uID
+                    isExist = os.path.exists(STORAGE_PATH)
+                    if not isExist:
+                        os.makedirs(STORAGE_PATH)
 
-                path, filename = os.path.split(S3_KEYS[index])
-                devcloud_file_path = os.path.join(STORAGE_PATH, filename)
-                my_bucket.download_file(S3_KEYS[index], devcloud_file_path)
-                data = {"greetings": "Downloaded index {0} with key {1}!".format(index, S3_KEYS[index])}
-            except ClientError as e:
-                IS_VALID = False
+                    path, filename = os.path.split(S3_KEYS[index])
+                    devcloud_file_path = os.path.join(STORAGE_PATH, filename)
+                    my_bucket.download_file(S3_KEYS[index], devcloud_file_path)
+                    data = {"greetings": "Downloaded index {0} with key {1}!".format(index, S3_KEYS[index])}
+                except ClientError as e:
+                    IS_VALID = IS_VALID
+            else:
+                # input_data is a dictionary with a key "name"
+                data = {"greetings": "fake download msg for index {0} with key {1}!".format(index, S3_KEYS[index])}
+            self.finish(json.dumps(data))
         else:
-            # input_data is a dictionary with a key "name"
-            data = {"greetings": "fake download msg for index {0} with key {1}!".format(index, S3_KEYS[index])}
-        self.finish(json.dumps(data))
+            upload_src_path = input_data["UPLOAD_FILE_PATH"]
+            if IS_VALID is True:
+                try:
+                    # Retrieve the list of existing buckets
+                    session = boto3.Session( 
+                        aws_access_key_id=ACCESS_KEY_ID, 
+                        aws_secret_access_key=SECRET_ACCESS_KEY)
+            
+                    s3 = session.resource('s3')
+                    isExist = os.path.exists(upload_src_path)
+                    if isExist:
+                        object_name = os.path.basename(upload_src_path)
+                        s3.meta.client.upload_file(upload_src_path, BUCKET_NAME, object_name)
+
+                    data = {"greetings": "Uploaded file {0} succesfully!".format(object_name)}
+                except ClientError as e:
+                    IS_VALID = IS_VALID
+            else:
+                data = {"greetings": "fake mock upload file {0}!".format(os.path.basename(upload_src_path))}
+            self.finish(json.dumps(data))
 
 def setup_handlers(web_app):
     host_pattern = ".*$"

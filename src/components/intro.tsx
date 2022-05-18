@@ -79,10 +79,32 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
         body: JSON.stringify(dataToSend),
         method: 'POST',
       });
-      // todo check if credentials & bucket was right, if not state on same page with error
-      // if is right, move to next list page
-      // for now skip to next page either ways.
-      // const dataString = JSON.stringify(reply);
+      this.setState({
+        myval: JSON.stringify(reply),
+        page: PageType.ViewList,
+      });
+      console.log(reply);
+    } catch (reason) {
+      console.error(`The csp_storage server extension appears to be missing.\n${reason}`);
+    }
+  }
+
+  OnFileUpload: React.FormEventHandler<HTMLFormElement> = async (event) => {
+
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    console.log(data.get('UPLOAD_FILE_PATH'));
+    const dataToSend = {
+      UPLOAD_FILE_PATH: data.get('UPLOAD_FILE_PATH'),
+      my_type: "upload"
+    };
+
+    // POST request
+    try {
+      const reply = await requestAPI<any>('list_api', {
+        body: JSON.stringify(dataToSend),
+        method: 'POST',
+      });
       this.setState({
         myval: JSON.stringify(reply),
         page: PageType.ViewList,
@@ -98,7 +120,7 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
     try {
       const data = await requestAPI<any>('list_api');
       this.setState({
-        myval: JSON.stringify(data),
+        //myval: JSON.stringify(data),
         page: PageType.ViewList,
         listArray: data
       });
@@ -113,7 +135,7 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
     index: number,
   ) => {
 
-    const dataToSend = { index: index };
+    const dataToSend = { index: index, my_type: "download" };
     // POST request
     try {
       const reply = await requestAPI<any>('list_api', {
@@ -189,7 +211,7 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
             <RefreshIcon color="primary" />
           </IconButton>
           </Grid>
-          <List component="nav" aria-label="main mailbox folders" style={{maxHeight: '500px', overflow: 'auto'}}>
+          <List component="nav" aria-label="main mailbox folders" style={{maxHeight: '300px', overflow: 'auto'}}>
           {_viewlist.map((val, i) => 
           <Grid item>
           <ListItem 
@@ -209,7 +231,23 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
           )}
           </List>
           
+          <Grid item>
+          <form noValidate autoComplete="off" onSubmit={this.OnFileUpload}>
+            <Grid item>
+              <InputLabel shrink htmlFor="age-native-label-placeholder">Full Upload File Path</InputLabel>
+              <TextField required name="UPLOAD_FILE_PATH" id="UPLOAD_FILE_PATH" label="" variant="outlined" />
+            </Grid>
+            <br/>
+            <Grid item>
+              <Button variant="contained" type="submit" color="primary">
+                Upload File
+              </Button>
+            </Grid>
+          </form>
+          </Grid>
+
         </div>;
+        //<Grid item>{this.state.myval}</Grid>
         //_renderTest = <div>{this.state.myval}</div>;
         break;
       default:
