@@ -1,3 +1,9 @@
+### 1 time setup
+```
+wget https://repo.anaconda.com/miniconda/Miniconda3-py38_4.12.0-Linux-x86_64.sh
+bash Miniconda3-py38_4.12.0-Linux-x86_64.sh
+conda config --set auto_activate_base false //to prevent remote vscode issue
+```
 
 ### Working with dev envr.
 ```
