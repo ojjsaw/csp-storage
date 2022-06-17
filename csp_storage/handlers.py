@@ -44,7 +44,7 @@ class RouteHandler(APIHandler):
         global STORAGE_PATH, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, IS_VALID
         ACCESS_KEY_ID = input_data["ACCESS_KEY_ID"]
         SECRET_ACCESS_KEY = input_data["SECRET_ACCESS_KEY"]
-        BUCKET_NAME = input_data["BUCKET_NAME"]
+        BUCKET_NAME = input_data["BUCKET_NAME"]        
         try:
             # Retrieve the list of existing buckets
             session = boto3.Session( 
@@ -58,14 +58,14 @@ class RouteHandler(APIHandler):
             #logging.error(e)
             IS_VALID = False
 
-        current_user = getpass.getuser()
+            current_user = getpass.getuser()        
         if current_user == "build":
             STORAGE_PATH = os.path.join("/data", "cloud-storage", "s3",BUCKET_NAME)
         else:
             STORAGE_PATH = os.path.join("/home", getpass.getuser(), "cloud-storage", "s3",BUCKET_NAME)
 
         data = {"greetings": "Test full user Path {0} with creds {1}!".format(STORAGE_PATH, IS_VALID)}
-        self.finish(json.dumps(data))
+        self.finish(json.dumps(data))        
 
 class ListHandler(APIHandler):
 
@@ -151,12 +151,36 @@ class ListHandler(APIHandler):
                 data = {"greetings": "fake mock upload file {0}!".format(os.path.basename(upload_src_path))}
             self.finish(json.dumps(data))
 
+class ConfigDetailsHandler(APIHandler):
+   
+    @tornado.web.authenticated
+    def post(self):        
+        input_data = self.get_json_body()
+        global ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME
+        ACCESS_KEY_ID = input_data["ACCESS_KEY_ID"]
+        SECRET_ACCESS_KEY = input_data["SECRET_ACCESS_KEY"]
+        BUCKET_NAME = input_data["BUCKET_NAME"]
+        current_user = getpass.getuser() 
+        if current_user == "build":
+            CONFIG_PATH = os.path.join("/data", "cloud-storage", "s3")
+        else:
+            CONFIG_PATH = os.path.join("/home", getpass.getuser(), "cloud-storage", "s3")     
+        config_path= os.path.join(CONFIG_PATH,"config.txt")
+        os.makedirs(os.path.dirname(config_path), exist_ok=True)
+        config_dict = {"ACCESS_KEY_ID":ACCESS_KEY_ID, "SECRET_ACCESS_KEY":SECRET_ACCESS_KEY,"BUCKET_NAME":BUCKET_NAME}
+        config_json = json.dumps(config_dict)
+        with open(config_path, "w") as f:
+            f.write(config_json)
+        data = {"greetings": "User Credentials inserted successfully in path {0} ".format(CONFIG_PATH)}
+        self.finish(json.dumps(data))
+
 def setup_handlers(web_app):
     host_pattern = ".*$"
 
     base_url = web_app.settings["base_url"]
     handlers = [
         (url_path_join(base_url, "csp-storage", "init_s3_api"), RouteHandler),
-        (url_path_join(base_url, "csp-storage", "list_api"), ListHandler)
+        (url_path_join(base_url, "csp-storage", "list_api"), ListHandler),
+        (url_path_join(base_url, "csp-storage", "config_api"), ConfigDetailsHandler)
         ]
     web_app.add_handlers(host_pattern, handlers)

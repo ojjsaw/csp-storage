@@ -60,6 +60,17 @@ class CspDetails extends Component<IProps> {
             SECRET_ACCESS_KEY: data.get('SECRET_ACCESS_KEY'),
             BUCKET_NAME: data.get('BUCKET_NAME'),
         };
+
+        // POST request fpr saving config details
+        try {
+            const configResponse = await requestAPI<any>('config_api', {
+                body: JSON.stringify(dataToSend),
+                method: 'POST',
+            });           
+            console.log(configResponse);
+        } catch (reason) {
+            console.error(`config details cannot be saved \n${reason}`);
+        }
         // POST request
         try {
             const reply = await requestAPI<any>('init_s3_api', {
