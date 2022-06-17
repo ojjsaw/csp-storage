@@ -58,7 +58,7 @@ class RouteHandler(APIHandler):
             #logging.error(e)
             IS_VALID = False
 
-            current_user = getpass.getuser()        
+        current_user = getpass.getuser()        
         if current_user == "build":
             STORAGE_PATH = os.path.join("/data", "cloud-storage", "s3",BUCKET_NAME)
         else:
@@ -131,32 +131,51 @@ class ListHandler(APIHandler):
             self.finish(json.dumps(data))
         else:
             upload_src_path = input_data["UPLOAD_FILE_PATH"]
-            if IS_VALID is True:
-                try:
-                    # Retrieve the list of existing buckets
-                    session = boto3.Session( 
-                        aws_access_key_id=ACCESS_KEY_ID, 
-                        aws_secret_access_key=SECRET_ACCESS_KEY)
-            
-                    s3 = session.resource('s3')
-                    isExist = os.path.exists(upload_src_path)
-                    if isExist:
-                        object_name = os.path.basename(upload_src_path)
-                        s3.meta.client.upload_file(upload_src_path, BUCKET_NAME, object_name)
-
-                    data = {"greetings": "Uploaded file {0} succesfully!".format(object_name)}
-                except ClientError as e:
-                    IS_VALID = IS_VALID
-            else:
-                data = {"greetings": "fake mock upload file {0}!".format(os.path.basename(upload_src_path))}
+            IS_VALIData = {"greetings": "fake mock upload file {0}!".format(os.path.basename(upload_src_path))}
             self.finish(json.dumps(data))
 
 class ConfigDetailsHandler(APIHandler):
+
+    @tornado.web.authenticated
+    def get(self):
+        global ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, IS_VALID, STORAGE_PATH        
+        current_user = getpass.getuser() 
+        if current_user == "build":
+            CONFIG_PATH = os.path.join("/data", "cloud-storage", "s3")
+        else:
+            CONFIG_PATH = os.path.join("/home", getpass.getuser(), "cloud-storage", "s3")     
+        config_path= os.path.join(CONFIG_PATH,"config.txt")
+        containsConfig = False
+        if os.path.exists(config_path):
+            with open(config_path) as f:
+                data = json.load(f)
+            ACCESS_KEY_ID = data["ACCESS_KEY_ID"]
+            SECRET_ACCESS_KEY = data["SECRET_ACCESS_KEY"]
+            BUCKET_NAME = data["BUCKET_NAME"]
+            containsConfig = True
+            try:
+                session = boto3.Session( 
+                aws_access_key_id=ACCESS_KEY_ID, 
+                aws_secret_access_key=SECRET_ACCESS_KEY)
+                s3 = session.resource('s3')
+                if s3.Bucket(BUCKET_NAME) in s3.buckets.all():
+                    IS_VALID = True
+            except ClientError as e:
+                IS_VALID = False
+            STORAGE_PATH = os.path.join(CONFIG_PATH,BUCKET_NAME)
+        else:
+            containsConfig = False
+            IS_VALID = False
+                    
+        data = {"isValid":IS_VALID,"containsConfig":containsConfig}
+           
+        self.finish(json.dumps(data))
+
    
     @tornado.web.authenticated
     def post(self):        
         input_data = self.get_json_body()
-        global ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME
+        global ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, STORAGE_PATH, IS_VALID
         ACCESS_KEY_ID = input_data["ACCESS_KEY_ID"]
         SECRET_ACCESS_KEY = input_data["SECRET_ACCESS_KEY"]
         BUCKET_NAME = input_data["BUCKET_NAME"]
@@ -171,9 +190,20 @@ class ConfigDetailsHandler(APIHandler):
         config_json = json.dumps(config_dict)
         with open(config_path, "w") as f:
             f.write(config_json)
-        data = {"greetings": "User Credentials inserted successfully in path {0} ".format(CONFIG_PATH)}
+        try:
+            
+            session = boto3.Session( 
+            aws_access_key_id=ACCESS_KEY_ID, 
+            aws_secret_access_key=SECRET_ACCESS_KEY)
+            s3 = session.resource('s3')
+            if s3.Bucket(BUCKET_NAME) in s3.buckets.all():
+                IS_VALID = True
+        except ClientError as e:
+            IS_VALID = False
+        STORAGE_PATH = os.path.join(CONFIG_PATH,BUCKET_NAME)
+        data = {"isValid":IS_VALID }
         self.finish(json.dumps(data))
-
+    
 def setup_handlers(web_app):
     host_pattern = ".*$"
 

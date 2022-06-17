@@ -66,25 +66,16 @@ class CspDetails extends Component<IProps> {
             const configResponse = await requestAPI<any>('config_api', {
                 body: JSON.stringify(dataToSend),
                 method: 'POST',
-            });           
+            });
             console.log(configResponse);
+            this.props.stateHandler({
+                myval: JSON.stringify(configResponse),
+                page: 2
+            });
         } catch (reason) {
             console.error(`config details cannot be saved \n${reason}`);
         }
-        // POST request
-        try {
-            const reply = await requestAPI<any>('init_s3_api', {
-                body: JSON.stringify(dataToSend),
-                method: 'POST',
-            });
-            this.props.stateHandler({
-                myval: JSON.stringify(reply),
-                page: 2
-            });
-            console.log(reply);
-        } catch (reason) {
-            console.error(`The csp_storage server extension appears to be missing.\n${reason}`);
-        }
+
     }
 
 

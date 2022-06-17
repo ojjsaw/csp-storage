@@ -49,13 +49,27 @@ class StorageProvider extends Component<IProps> {
         // GET request
         try {
             const data = await requestAPI<any>('init_s3_api');
-            this.props.stateHandler({
-                myval: JSON.stringify(data),
-                page: 1
-            });
+
             console.log(data);
         } catch (reason) {
             console.error(`The csp_storage server extension appears to be missing.\n${reason}`);
+        }
+        try {
+            const data = await requestAPI<any>('config_api');
+            console.log(data);
+            if (data.isValid) {
+                this.props.stateHandler({
+                    myval: JSON.stringify(data),
+                    page: 2
+                });
+            } else {
+                this.props.stateHandler({
+                    myval: JSON.stringify(data),
+                    page: 1
+                });
+            }
+        } catch (reason) {
+            console.error(`Unable to retrieve config details`);
         }
     }
 }
