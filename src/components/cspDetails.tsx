@@ -26,22 +26,21 @@ class CspDetails extends Component<IProps> {
             <div>
                 <form noValidate autoComplete="off" onSubmit={this.OnCSPDetails}>
                     <Grid item>
-                        <InputLabel shrink htmlFor="age-native-label-placeholder">Access Key</InputLabel>
+                        <InputLabel style={{ marginBottom: "1em" }} shrink htmlFor="age-native-label-placeholder">AWS S3 Bucket Name</InputLabel>
+                        <TextField required name="BUCKET_NAME" id="BUCKET_NAME" label="" variant="outlined" />
+                    </Grid>
+                    <Grid item>
+                        <InputLabel style={{ marginTop: "1em" }} shrink htmlFor="age-native-label-placeholder">AWS Access Key</InputLabel>
                         <TextField required name="ACCESS_KEY_ID" id="ACCESS_KEY_ID" label="" variant="outlined" />
                     </Grid>
 
                     <Grid item>
-                        <InputLabel shrink htmlFor="age-native-label-placeholder">Secret Access Key</InputLabel>
+                        <InputLabel style={{ marginTop: "1em" }} shrink htmlFor="age-native-label-placeholder">AWS Secret Access Key</InputLabel>
                         <TextField required name="SECRET_ACCESS_KEY" id="SECRET_ACCESS_KEY" label="" variant="outlined" type="password" />
                     </Grid>
 
                     <Grid item>
-                        <InputLabel shrink htmlFor="age-native-label-placeholder">Bucket Name</InputLabel>
-                        <TextField required name="BUCKET_NAME" id="BUCKET_NAME" label="" variant="outlined" />
-                    </Grid>
-
-                    <Grid item>
-                        <Button variant="contained" type="submit" color="primary">
+                        <Button style={{ marginTop: "1em" }} variant="contained" type="submit" color="primary">
                             Submit
                         </Button>
                     </Grid>

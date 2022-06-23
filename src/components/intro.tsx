@@ -7,14 +7,15 @@ import Grid from '@material-ui/core/Grid/Grid';
 
 import StorageProvider from './storageProvider';
 import CspDetails from './cspDetails';
-import ViewList from './viewList';
+
+import ViewImportList from './viewImportList';
 
 interface IProps { }
 
 export enum PageType {
   SelectCSP = 0,
   CSPDetails = 1,
-  ViewList = 2
+  ViewImportList = 2
 }
 
 export interface IDataProps {
@@ -52,8 +53,9 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
       case PageType.CSPDetails:
         _renderTest = <CspDetails stateHandler={this.stateHandler}></CspDetails>;
         break;
-      case PageType.ViewList:
-        _renderTest = <ViewList stateHandler={this.stateHandler} viewList={this.state.listArray}></ViewList>
+      case PageType.ViewImportList:
+        //_renderTest = <ViewList stateHandler={this.stateHandler} viewList={this.state.listArray}></ViewList>
+        _renderTest = <ViewImportList stateHandler={this.stateHandler} viewList={this.state.listArray}></ViewImportList>
         break;
       default:
         _renderTest = <div>hello</div>;
@@ -70,8 +72,8 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
           style={{ minHeight: '30vh' }}>
 
           <Grid item>
-            <Typography variant="h6" component="h1" gutterBottom>
-              Intel® DevCloud Storage Connector
+            <Typography style={{ marginLeft: "1em" }} variant="h6" component="h1" gutterBottom>
+              Cloud Storage Connector
             </Typography>
           </Grid>
 

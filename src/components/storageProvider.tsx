@@ -28,7 +28,7 @@ class StorageProvider extends Component<IProps> {
                 <Grid item>
                     <InputLabel shrink htmlFor="age-native-label-placeholder">Cloud Storage Provider</InputLabel>
                     <NativeSelect>
-                        <option value={10}>Amazon S3</option>
+                        <option value={10}>Amazon Web Services S3</option>
                         <option value={20} disabled>Azure Blob Storage</option>
                         <option value={30} disabled>Google Cloud Storage</option>
                     </NativeSelect>
@@ -57,7 +57,7 @@ class StorageProvider extends Component<IProps> {
         try {
             const data = await requestAPI<any>('config_api');
             console.log(data);
-            if (data.isValid) {
+            if (data.containsConfig) {
                 this.props.stateHandler({
                     myval: JSON.stringify(data),
                     page: 2

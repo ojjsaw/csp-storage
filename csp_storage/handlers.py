@@ -91,10 +91,12 @@ class ListHandler(APIHandler):
             except ClientError as e:
                 #logging.error(e)
                 IS_VALID = IS_VALID
-        else:
-            S3_KEYS.append(STORAGE_PATH)
-            for i in range(30):
-                S3_KEYS.append("mock/s3path/file" + str(i) + ".txt")
+        else:                       
+            #S3_KEYS.append(LIST_PATH)
+            for i in range(5):
+                S3_KEYS.append(LIST_PATH +"/train/file" + str(i) + ".py")
+            for i in range(5):
+                S3_KEYS.append(LIST_PATH +"/test/file" + str(i) + ".py")
         self.finish(json.dumps(S3_KEYS))
 
     @tornado.web.authenticated
@@ -138,7 +140,7 @@ class ConfigDetailsHandler(APIHandler):
 
     @tornado.web.authenticated
     def get(self):
-        global ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, IS_VALID, STORAGE_PATH        
+        global ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, IS_VALID, STORAGE_PATH,LIST_PATH        
         current_user = getpass.getuser() 
         if current_user == "build":
             CONFIG_PATH = os.path.join("/data", "cloud-storage", "s3")
@@ -163,6 +165,7 @@ class ConfigDetailsHandler(APIHandler):
             except ClientError as e:
                 IS_VALID = False
             STORAGE_PATH = os.path.join(CONFIG_PATH,BUCKET_NAME)
+            LIST_PATH = os.path.join(getpass.getuser(), "cloud-imports", "s3",BUCKET_NAME)
         else:
             containsConfig = False
             IS_VALID = False
@@ -175,7 +178,7 @@ class ConfigDetailsHandler(APIHandler):
     @tornado.web.authenticated
     def post(self):        
         input_data = self.get_json_body()
-        global ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, STORAGE_PATH, IS_VALID
+        global ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, STORAGE_PATH, IS_VALID,LIST_PATH
         ACCESS_KEY_ID = input_data["ACCESS_KEY_ID"]
         SECRET_ACCESS_KEY = input_data["SECRET_ACCESS_KEY"]
         BUCKET_NAME = input_data["BUCKET_NAME"]
@@ -201,6 +204,7 @@ class ConfigDetailsHandler(APIHandler):
         except ClientError as e:
             IS_VALID = False
         STORAGE_PATH = os.path.join(CONFIG_PATH,BUCKET_NAME)
+        LIST_PATH = os.path.join(getpass.getuser(), "cloud-imports", "s3",BUCKET_NAME)
         data = {"isValid":IS_VALID }
         self.finish(json.dumps(data))
     

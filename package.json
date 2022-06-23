@@ -61,6 +61,7 @@
     "@material-ui/core": "^4.8.2",
     "@material-ui/icons": "^4.5.1",
     "@material-ui/lab": "^4.0.0-alpha.54",
+    "mdbreact": "^5.2.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-virtualized-auto-sizer": "^1.0.2",
@@ -93,16 +94,16 @@
   "publishConfig": {
     "access": "public"
   },
-  "jupyterlab": { 
+  "jupyterlab": {
     "discovery": {
-        "server": {
-          "managers": [
-            "pip"
-          ],
-          "base": {
-            "name": "csp_storage"
-          }
+      "server": {
+        "managers": [
+          "pip"
+        ],
+        "base": {
+          "name": "csp_storage"
         }
+      }
     },
     "extension": true,
     "outputDir": "csp_storage/labextension"
