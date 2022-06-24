@@ -1,47 +1,23 @@
-### 1 time setup
+# branch to experiment with aws sdk
+
+### create python virtual environment and activate
 ```
-wget https://repo.anaconda.com/miniconda/Miniconda3-py38_4.12.0-Linux-x86_64.sh
-bash Miniconda3-py38_4.12.0-Linux-x86_64.sh
-conda config --set auto_activate_base false //to prevent remote vscode issue
-```
-
-### Working with dev envr.
-```
-conda create -n lab-csp-storage --override-channels --strict-channel-priority -c conda-forge -c nodefaults jupyterlab=3 cookiecutter nodejs jupyter-packaging git
-
-conda activate lab-csp-storage
-
-python -m pip install -e . && jupyter labextension develop . --overwrite && jupyter server extension enable csp_storage && jlpm run build
-
-pip install numpy boto3
-
-jupyter lab
-
-// In a new terminal with same conda envr, for non python backend, frontend dev without manual rebuild
-jlpm run watch
-
-conda deactivate
+python -m venv testvenv
+source testvenv/bin/activate
+python -m pip install --upgrade pip
 ```
 
-### Build wheel package for install
+### install boto3 aws sdk
 ```
-pip install build
-
-python -m build
+pip install boto3
 ```
 
-### Test wheel package
+### experiment boto3 aws sdk api
 ```
-conda create -n lab-testenv jupyterlab
+python test.py
+```
 
-conda activate lab-testenv
-
-pip install csp_storage-0.1.0-py3-none-any.whl
-jupyter server extension enable csp_storage
-
-jupyter lab
-
-jupyter server extension disable csp_storage
-pip uninstall csp_storage-0.1.0-py3-none-any.whl
-conda deactivate
+### deactivate python virtual environment
+```
+deactivate
 ```
