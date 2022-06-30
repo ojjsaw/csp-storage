@@ -11,6 +11,8 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 import logging
+import glob
+import os.path
 
 ACCESS_KEY_ID = ""
 SECRET_ACCESS_KEY = ""
@@ -60,9 +62,9 @@ class RouteHandler(APIHandler):
 
         current_user = getpass.getuser()        
         if current_user == "build":
-            STORAGE_PATH = os.path.join("/data", "cloud-storage", "s3",BUCKET_NAME)
+            STORAGE_PATH = os.path.join("/data", "cloud-imports", "s3",BUCKET_NAME)
         else:
-            STORAGE_PATH = os.path.join("/home", getpass.getuser(), "cloud-storage", "s3",BUCKET_NAME)
+            STORAGE_PATH = os.path.join("/home", getpass.getuser(), "cloud-imports", "s3",BUCKET_NAME)
 
         data = {"greetings": "Test full user Path {0} with creds {1}!".format(STORAGE_PATH, IS_VALID)}
         self.finish(json.dumps(data))        
@@ -96,7 +98,7 @@ class ListHandler(APIHandler):
             for i in range(5):
                 S3_KEYS.append(LIST_PATH +"/train/file" + str(i) + ".py")
             for i in range(5):
-                S3_KEYS.append(LIST_PATH +"/test/file" + str(i) + ".py")
+                S3_KEYS.append(LIST_PATH +"/test/file" + str(i) + ".py")        
         self.finish(json.dumps(S3_KEYS))
 
     @tornado.web.authenticated
@@ -115,16 +117,18 @@ class ListHandler(APIHandler):
             
                     s3 = session.resource('s3')
                     my_bucket = s3.Bucket(BUCKET_NAME)
-                    #STORAGE_PATH = os.path.join("/home", getpass.getuser(), "cloud-storage", "s3",BUCKET_NAME)
+                    #STORAGE_PATH = os.path.join("/home", getpass.getuser(), "cloud-imports", "s3",BUCKET_NAME)
                     # create directory for uID
                     isExist = os.path.exists(STORAGE_PATH)
                     if not isExist:
                         os.makedirs(STORAGE_PATH)
-
-                    path, filename = os.path.split(S3_KEYS[index])
-                    devcloud_file_path = os.path.join(STORAGE_PATH, filename)
-                    my_bucket.download_file(S3_KEYS[index], devcloud_file_path)
-                    data = {"greetings": "Downloaded index {0} with key {1}!".format(index, S3_KEYS[index])}
+                    
+                    for i in range(len(index)):
+                        path, filename = os.path.split(S3_KEYS[index[i]])
+                        print("path is ",path)
+                        devcloud_file_path = os.path.join(STORAGE_PATH, filename)
+                        my_bucket.download_file(S3_KEYS[index[i]], devcloud_file_path)
+                        data = {"greetings": "Downloaded index {0} with key {1}!".format(index[i], S3_KEYS[index[i]])}
                 except ClientError as e:
                     IS_VALID = IS_VALID
             else:
@@ -133,7 +137,24 @@ class ListHandler(APIHandler):
             self.finish(json.dumps(data))
         else:
             upload_src_path = input_data["UPLOAD_FILE_PATH"]
-            IS_VALIData = {"greetings": "fake mock upload file {0}!".format(os.path.basename(upload_src_path))}
+            if IS_VALID is True:
+                try:
+                    # Retrieve the list of existing buckets
+                    session = boto3.Session( 
+                        aws_access_key_id=ACCESS_KEY_ID, 
+                        aws_secret_access_key=SECRET_ACCESS_KEY)
+            
+                    s3 = session.resource('s3')
+                    isExist = os.path.exists(upload_src_path)
+                    if isExist:
+                        object_name = os.path.basename(upload_src_path)
+                        s3.meta.client.upload_file(upload_src_path, BUCKET_NAME, object_name)
+
+                    data = {"greetings": "Uploaded file {0} succesfully!".format(object_name)}
+                except ClientError as e:
+                    IS_VALID = IS_VALID
+            else:
+                data = {"greetings": "fake mock upload file {0}!".format(os.path.basename(upload_src_path))}
             self.finish(json.dumps(data))
 
 class ConfigDetailsHandler(APIHandler):
@@ -143,9 +164,9 @@ class ConfigDetailsHandler(APIHandler):
         global ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, IS_VALID, STORAGE_PATH,LIST_PATH        
         current_user = getpass.getuser() 
         if current_user == "build":
-            CONFIG_PATH = os.path.join("/data", "cloud-storage", "s3")
+            CONFIG_PATH = os.path.join("/data", "cloud-imports", "s3")
         else:
-            CONFIG_PATH = os.path.join("/home", getpass.getuser(), "cloud-storage", "s3")     
+            CONFIG_PATH = os.path.join("/home", getpass.getuser(), "cloud-imports", "s3")     
         config_path= os.path.join(CONFIG_PATH,"config.txt")
         containsConfig = False
         if os.path.exists(config_path):
@@ -184,9 +205,9 @@ class ConfigDetailsHandler(APIHandler):
         BUCKET_NAME = input_data["BUCKET_NAME"]
         current_user = getpass.getuser() 
         if current_user == "build":
-            CONFIG_PATH = os.path.join("/data", "cloud-storage", "s3")
+            CONFIG_PATH = os.path.join("/data", "cloud-imports", "s3")
         else:
-            CONFIG_PATH = os.path.join("/home", getpass.getuser(), "cloud-storage", "s3")     
+            CONFIG_PATH = os.path.join("/home", getpass.getuser(), "cloud-imports", "s3")     
         config_path= os.path.join(CONFIG_PATH,"config.txt")
         os.makedirs(os.path.dirname(config_path), exist_ok=True)
         config_dict = {"ACCESS_KEY_ID":ACCESS_KEY_ID, "SECRET_ACCESS_KEY":SECRET_ACCESS_KEY,"BUCKET_NAME":BUCKET_NAME}
@@ -198,15 +219,29 @@ class ConfigDetailsHandler(APIHandler):
             session = boto3.Session( 
             aws_access_key_id=ACCESS_KEY_ID, 
             aws_secret_access_key=SECRET_ACCESS_KEY)
-            s3 = session.resource('s3')
-            if s3.Bucket(BUCKET_NAME) in s3.buckets.all():
+            s3 = session.resource('s3')            
+            if s3.Bucket(BUCKET_NAME) in s3.buckets.all():                
                 IS_VALID = True
-        except ClientError as e:
+        except ClientError as e:            
             IS_VALID = False
         STORAGE_PATH = os.path.join(CONFIG_PATH,BUCKET_NAME)
         LIST_PATH = os.path.join(getpass.getuser(), "cloud-imports", "s3",BUCKET_NAME)
         data = {"isValid":IS_VALID }
         self.finish(json.dumps(data))
+
+
+class ExportListHandler(APIHandler):
+   
+    @tornado.web.authenticated
+    def get(self):
+        current_user = getpass.getuser()
+        if current_user == "build":
+            paths = glob.glob("/data"+"/**/*.*", recursive=True)
+        else:
+            paths = glob.glob("/home/"+getpass.getuser()+"/*")
+        print("Path list ::")        
+        print(paths)
+        self.finish(json.dumps(paths))
     
 def setup_handlers(web_app):
     host_pattern = ".*$"
@@ -215,6 +250,7 @@ def setup_handlers(web_app):
     handlers = [
         (url_path_join(base_url, "csp-storage", "init_s3_api"), RouteHandler),
         (url_path_join(base_url, "csp-storage", "list_api"), ListHandler),
-        (url_path_join(base_url, "csp-storage", "config_api"), ConfigDetailsHandler)
+        (url_path_join(base_url, "csp-storage", "config_api"), ConfigDetailsHandler),
+        (url_path_join(base_url, "csp-storage", "export_list_api"), ExportListHandler)
         ]
     web_app.add_handlers(host_pattern, handlers)

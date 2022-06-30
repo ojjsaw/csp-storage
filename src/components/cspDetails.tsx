@@ -41,7 +41,7 @@ class CspDetails extends Component<IProps> {
 
                     <Grid item>
                         <Button style={{ marginTop: "1em" }} variant="contained" type="submit" color="primary">
-                            Submit
+                            Connect
                         </Button>
                     </Grid>
                 </form>

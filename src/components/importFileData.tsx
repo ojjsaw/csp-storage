@@ -13,8 +13,9 @@ export var convertPath = function (pathList: any) {
   //console.log("path list data ::",data);
   if (pathList) {
     var result = pathList.reduce((r: any, path: any) => {
+      var path = path.replace('/home/', '');
       path.split('/').reduce((children: any, name: string) => {
-        console.log("childeren", name);
+        //console.log("childeren", name);
         let child = children.find((n: any) => n.name === name);
         if (!child) children.push(child = { name, id: String(++idvalue), children: [] });
         return child.children;

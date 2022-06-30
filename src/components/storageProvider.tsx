@@ -57,7 +57,7 @@ class StorageProvider extends Component<IProps> {
         try {
             const data = await requestAPI<any>('config_api');
             console.log(data);
-            if (data.containsConfig) {
+            if (data.isValid) {
                 this.props.stateHandler({
                     myval: JSON.stringify(data),
                     page: 2

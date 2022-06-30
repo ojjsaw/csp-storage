@@ -122,8 +122,8 @@ class ViewList extends Component<IProps> {
         event: React.MouseEvent<HTMLDivElement, MouseEvent>,
         index: number,
     ) => {
-
-        const dataToSend = { index: index, my_type: "download" };
+        console.log("index number", index);
+        /*const dataToSend = { index: index, my_type: "download" };
         // POST request
         try {
             const reply = await requestAPI<any>('list_api', {
@@ -137,7 +137,7 @@ class ViewList extends Component<IProps> {
             console.log(reply);
         } catch (reason) {
             console.error(`The csp_storage server extension appears to be missing.\n${reason}`);
-        }
+        }*/
 
     }
 
