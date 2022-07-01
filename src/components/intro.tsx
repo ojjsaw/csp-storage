@@ -25,7 +25,8 @@ export interface IDataProps {
   listArray: Array<any>;
 }
 
-export class IntroComponent extends React.Component<IProps, IDataProps> {
+export class IntroComponent extends React.Component<IProps, IDataProps> { 
+  
 
   constructor(props: IProps) {
     super(props);
@@ -35,7 +36,7 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
       page: PageType.SelectCSP,
       listArray: []
     };
-    this.stateHandler = this.stateHandler.bind(this);
+    this.stateHandler = this.stateHandler.bind(this);    
   }
 
   stateHandler = (val: any) => {
@@ -63,7 +64,7 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
     }
 
     return (
-      <div>
+      <div >
         <Grid container
           spacing={10}
           direction="column"

@@ -11,6 +11,7 @@ import { MDBIcon } from 'mdbreact'
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Typography from "@material-ui/core/Typography";
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 interface IProps {
     stateHandler: any,
@@ -22,6 +23,25 @@ const useStyles = makeStyles((theme) => ({
     },
     divStyles: {
         width: "80%"
+    },
+    parentDisable: {
+        display: "none"
+    },
+    overlayBox: {
+        position: "absolute",
+        top: "50%",
+        left: "40%",
+        transform: "translate(-50%, -50%)",
+        color: "blue",
+        opacity: .8,
+        zIndex: 1000
+    },
+    importTextStyles: {
+        position: "absolute",
+        top: "40%",
+        left: "30%",
+        fontSize: "1.25rem",
+        fontWeight: "bold"
     }
 }));
 export default function ViewImportList(props: IProps) {
@@ -47,6 +67,14 @@ export default function ViewImportList(props: IProps) {
     const intialSelectedFiles: any[] = [];
 
     const [selectedFiles, setSelectedFiles] = React.useState(intialSelectedFiles);
+
+    const [isLoading, setIsLoading] = React.useState(false)
+
+    const [importMsg, setImportMsg] = React.useState('')
+
+    const [listLoading, setListLoading] = React.useState(false)
+
+    const [isImport, setIsImport] = React.useState(true)
 
     React.useEffect(() => {
         importList();
@@ -88,6 +116,7 @@ export default function ViewImportList(props: IProps) {
     }
 
     function getOnChange(checked: boolean, nodes: RenderTree) {
+        console.log("nodes ", nodes);
         var filesSelected = selectedFiles;
         if (nodes) {
             filesPath.push(nodes);
@@ -106,19 +135,31 @@ export default function ViewImportList(props: IProps) {
 
         array = array.filter((v, i) => array.indexOf(v) === i);
         var pathList = props.viewList;
-        console.log("file paths :: ", filesPath);
         for (var i = 0; i < filesPath.length; i++) {
             let index = 0;
             pathList.filter((element: any) => {
 
                 if (element.includes(filesPath[i].name)) {
-                    console.log("index value :: ", index);
-                    filesSelected.push(index);
+                    console.log("index value ", index);
+                    let existingindex = filesSelected.indexOf(index);
+                    if (existingindex > -1) {
+                        filesSelected = filesSelected.filter(function (item) {
+                            return item !== index
+                        })
+                    } else {
+                        filesSelected.push(index);
+                    }
+
                 } index = index + 1;
             });
             //filesSelected.push(result);                       
         }
+
+        setSelectedFiles([]);
+
         setSelectedFiles(filesSelected);
+
+
         setSelected(array);
     }
 
@@ -150,6 +191,11 @@ export default function ViewImportList(props: IProps) {
     );
 
     const importList = async () => {
+        setListLoading(true);
+        props.stateHandler({
+            page: 2,
+            listArray: []
+        });
         try {
             const data = await requestAPI<any>('list_api');
             props.stateHandler({
@@ -160,6 +206,7 @@ export default function ViewImportList(props: IProps) {
         } catch (reason) {
             console.error(`The csp_storage server extension appears to be missing.\n${reason}`);
         }
+        setListLoading(false);
     }
 
     const OnRefreshList = async () => {
@@ -172,11 +219,14 @@ export default function ViewImportList(props: IProps) {
                 await exportList();
             })();
         }
-
     }
 
     const exportList = async () => {
-        // GET request
+        setListLoading(true);
+        props.stateHandler({
+            page: 2,
+            listArray: []
+        });
         try {
             const data = await requestAPI<any>('export_list_api');
             props.stateHandler({
@@ -187,6 +237,7 @@ export default function ViewImportList(props: IProps) {
         } catch (reason) {
             console.error(`The csp_storage server extension appears to be missing.\n${reason}`);
         }
+        setListLoading(false);
     }
 
     function buttonSelected(btnName: any) {
@@ -197,42 +248,57 @@ export default function ViewImportList(props: IProps) {
             setPriButtonText('EXPORT SELECTED');
             setSecButtonText('IMPORT TO DEV CLOUD');
             setSelectionValueText('IMPORT');
+            setIsImport(false);
         } else {
+            (async () => {
+                await importList();
+            })();
             setPriButtonText('IMPORT SELECTED');
             setSecButtonText('EXPORT TO THIS BUCKET');
             setSelectionValueText('EXPORT');
+            setIsImport(true);
         }
 
     }
 
     const importData = async () => {
+        setIsLoading(true);
         console.log("filtered result in import data :: ", selectedFiles);
-        const dataToSend = { index: selectedFiles, my_type: "download" };
-        // POST request
-        try {
+        var msg: string = '';
+        var count = 1;
+        await Promise.all(selectedFiles.map(async (file) => {
+            const dataToSend = { index: file, my_type: "download" };
             const reply = await requestAPI<any>('list_api', {
                 body: JSON.stringify(dataToSend),
                 method: 'POST',
             });
+            msg = count + ' files have been successfull imported';
+            setImportMsg(msg);
+            count = count + 1;
             console.log(reply);
-        } catch (reason) {
-            console.error(`Error in import data .\n${reason}`);
-        }
+        }));
+        setIsLoading(false);
     }
 
     return (
 
         <div className={classes.divStyles}>
-            <Typography style={{ fontSize: "1rem", fontWeight: "bold" }} variant="h6" align="left">
+            {listLoading && <CircularProgress className={classes.overlayBox} color="primary" />}
+            {isLoading && <CircularProgress className={classes.overlayBox} color="primary" />}
+            {isLoading && <Typography className={classes.importTextStyles}>{importMsg}</Typography>}
+            {isImport && <Typography style={{ fontSize: "1rem", fontWeight: "bold" }} variant="h6" align="left">
                 Connected to: Amazon S3
-            </Typography>
-            <Typography style={{ fontSize: "1rem", fontWeight: "bold" }} variant="h6" align="left">
-                Bucket Name : Mybucket
-            </Typography>
+            </Typography>}
+            {!isImport && <Typography style={{ fontSize: "1rem", fontWeight: "bold" }} variant="h6" align="left">
+                Connected to: DevCloud
+            </Typography>}
+            {isImport && <Typography style={{ fontSize: "1rem", fontWeight: "bold" }} variant="h6" align="left">
+                Bucket Name : ojastestbk1
+            </Typography>}
             <Button style={{ float: "left" }} type="submit" color="primary">
                 Disconnect
             </Button>
-            <Button style={{ float: "right" }} type="submit" color="primary" onClick={() => buttonSelected(selectionValueText)}>
+            <Button style={isLoading ? { display: 'none' } : { float: "right" }} type="submit" color="primary" onClick={() => buttonSelected(selectionValueText)}>
                 {secButtonText}
             </Button>
             <hr style={{ color: '#000000', backgroundColor: '#000000', height: .1, borderColor: '#000000', marginTop: '5em' }} />
@@ -244,7 +310,7 @@ export default function ViewImportList(props: IProps) {
                     <RefreshIcon color="primary" />
                 </IconButton>
             </Grid>
-            <TreeView
+            <TreeView style={isLoading ? { display: 'none' } : {}}
                 defaultCollapseIcon={<MDBIcon far icon="folder-open" size="lg" />}
                 defaultExpanded={["0", "3", "4"]}
                 defaultExpandIcon={<MDBIcon icon="folder" size="lg" />}

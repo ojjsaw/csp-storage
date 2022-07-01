@@ -13,6 +13,8 @@ from botocore.exceptions import ClientError
 import logging
 import glob
 import os.path
+import progressbar
+import json
 
 ACCESS_KEY_ID = ""
 SECRET_ACCESS_KEY = ""
@@ -106,35 +108,52 @@ class ListHandler(APIHandler):
         input_data = self.get_json_body()
         msg_type = input_data["my_type"]
         global STORAGE_PATH, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, IS_VALID, S3_KEYS
+        data = {}
         if msg_type == "download":
             index = input_data["index"]         
             if IS_VALID is True:
                 try:
-                    # Retrieve the list of existing buckets
+                    # Retrieve the list of existing buckets 
                     session = boto3.Session( 
                     aws_access_key_id=ACCESS_KEY_ID, 
                     aws_secret_access_key=SECRET_ACCESS_KEY)
-            
                     s3 = session.resource('s3')
                     my_bucket = s3.Bucket(BUCKET_NAME)
-                    #STORAGE_PATH = os.path.join("/home", getpass.getuser(), "cloud-imports", "s3",BUCKET_NAME)
-                    # create directory for uID
+                    print("in download") 
+                    
                     isExist = os.path.exists(STORAGE_PATH)
                     if not isExist:
                         os.makedirs(STORAGE_PATH)
                     
-                    for i in range(len(index)):
-                        path, filename = os.path.split(S3_KEYS[index[i]])
-                        print("path is ",path)
-                        devcloud_file_path = os.path.join(STORAGE_PATH, filename)
-                        my_bucket.download_file(S3_KEYS[index[i]], devcloud_file_path)
-                        data = {"greetings": "Downloaded index {0} with key {1}!".format(index[i], S3_KEYS[index[i]])}
+                    
+                    path, filename = os.path.split(S3_KEYS[index])
+
+                    devcloud_file_path = os.path.join(STORAGE_PATH, filename)
+
+                    s3_client = boto3.client('s3',aws_access_key_id=ACCESS_KEY_ID, 
+                    aws_secret_access_key=SECRET_ACCESS_KEY)
+                    
+                    content_len = my_bucket.Object(path+'/'+filename).content_length
+                    print("Content length ",content_len)
+                    
+
+                    up_progress = progressbar.progressbar.ProgressBar(maxval=content_len)
+                    up_progress.start()
+
+                    def upload_progress(chunk):
+                        up_progress.update(up_progress.currval + chunk)
+                    
+                    
+                    my_bucket.download_file(S3_KEYS[index], devcloud_file_path,Callback=upload_progress)
+                    up_progress.finish()
+                    data = {"fileImported": filename,"importStatus":"Success"}
+                    print("Download complete")
                 except ClientError as e:
+                    data = {"fileImported": filename,"importStatus":"Failure"}
                     IS_VALID = IS_VALID
             else:
                 # input_data is a dictionary with a key "name"
-                data = {"greetings": "fake download msg for index {0} with key {1}!".format(index, S3_KEYS[index])}
-            self.finish(json.dumps(data))
+                data = {"greetings": "fake download msg for index {0} with key {1}!".format(index, S3_KEYS[index])}            
         else:
             upload_src_path = input_data["UPLOAD_FILE_PATH"]
             if IS_VALID is True:
@@ -155,7 +174,7 @@ class ListHandler(APIHandler):
                     IS_VALID = IS_VALID
             else:
                 data = {"greetings": "fake mock upload file {0}!".format(os.path.basename(upload_src_path))}
-            self.finish(json.dumps(data))
+        self.finish(json.dumps(data))
 
 class ConfigDetailsHandler(APIHandler):
 
@@ -238,7 +257,7 @@ class ExportListHandler(APIHandler):
         if current_user == "build":
             paths = glob.glob("/data"+"/**/*.*", recursive=True)
         else:
-            paths = glob.glob("/home/"+getpass.getuser()+"/*")
+            paths = glob.glob("/home/"+getpass.getuser()+"/**/*.*", recursive=True)
         print("Path list ::")        
         print(paths)
         self.finish(json.dumps(paths))

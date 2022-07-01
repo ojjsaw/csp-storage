@@ -38,7 +38,7 @@ class StorageProvider extends Component<IProps> {
                 </Grid>
                 <Grid item>
                     <Button variant="contained" color="primary" onClick={() => this.OnSelectCSP()}>
-                        Configure
+                        Connect
                     </Button>
                 </Grid>
             </div>
