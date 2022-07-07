@@ -164,12 +164,24 @@ class ListHandler(APIHandler):
                         aws_secret_access_key=SECRET_ACCESS_KEY)
             
                     s3 = session.resource('s3')
+                    my_bucket = s3.Bucket(BUCKET_NAME)
                     isExist = os.path.exists(upload_src_path)
                     if isExist:
                         object_name = os.path.basename(upload_src_path)
-                        s3.meta.client.upload_file(upload_src_path, BUCKET_NAME, object_name)
-
-                    data = {"greetings": "Uploaded file {0} succesfully!".format(object_name)}
+                        s3_client = boto3.client('s3',aws_access_key_id=ACCESS_KEY_ID, 
+                        aws_secret_access_key=SECRET_ACCESS_KEY)
+                        #s3.meta.client.upload_file(upload_src_path, BUCKET_NAME, object_name)
+                        file_size = os.stat(upload_src_path).st_size
+                        print("file size",file_size)                        
+                        up_progress = progressbar.progressbar.ProgressBar(maxval=file_size)
+                        up_progress.start()
+                        def upload_progress(chunk):
+                            up_progress.update(up_progress.currval + chunk)
+                        my_bucket.upload_file(upload_src_path, BUCKET_NAME, Callback=upload_progress)
+                        up_progress.finish()
+                        data = {"fileExported": upload_src_path,"exportStatus":"Success"}
+                    else:
+                        data = {"fileExported": upload_src_path,"exportStatus":"Failure","errorMsg":"Uploaded file path doesn't exists"}
                 except ClientError as e:
                     IS_VALID = IS_VALID
             else:
@@ -257,10 +269,20 @@ class ExportListHandler(APIHandler):
         if current_user == "build":
             paths = glob.glob("/data"+"/**/*.*", recursive=True)
         else:
-            paths = glob.glob("/home/"+getpass.getuser()+"/**/*.*", recursive=True)
+            paths = glob.glob("/home/"+getpass.getuser()+"/[!node_modules]*/**/*.*", recursive=True)
         print("Path list ::")        
         print(paths)
         self.finish(json.dumps(paths))
+
+class ChangeJupterLabDir(APIHandler):
+    
+    @tornado.web.authenticated
+    def get(self):
+        print("in jupter lab change directory function")           
+        
+        #os.chdir(os.path.join("/home/"+getpass.getuser(), "cloud-imports", "s3",BUCKET_NAME))   
+
+
     
 def setup_handlers(web_app):
     host_pattern = ".*$"
@@ -270,6 +292,7 @@ def setup_handlers(web_app):
         (url_path_join(base_url, "csp-storage", "init_s3_api"), RouteHandler),
         (url_path_join(base_url, "csp-storage", "list_api"), ListHandler),
         (url_path_join(base_url, "csp-storage", "config_api"), ConfigDetailsHandler),
-        (url_path_join(base_url, "csp-storage", "export_list_api"), ExportListHandler)
+        (url_path_join(base_url, "csp-storage", "export_list_api"), ExportListHandler),
+        (url_path_join(base_url, "csp-storage", "change_dir"), ChangeJupterLabDir)
         ]
     web_app.add_handlers(host_pattern, handlers)

@@ -29,7 +29,7 @@ const useStyles = makeStyles((theme) => ({
     },
     overlayBox: {
         position: "absolute",
-        top: "50%",
+        top: "30%",
         left: "40%",
         transform: "translate(-50%, -50%)",
         color: "blue",
@@ -39,7 +39,21 @@ const useStyles = makeStyles((theme) => ({
     importTextStyles: {
         position: "absolute",
         top: "40%",
-        left: "30%",
+        left: "15%",
+        fontSize: "1.25rem",
+        fontWeight: "bold"
+    },
+    viewBtnStyles: {
+        position: "absolute",
+        top: "50%",
+        left: "15%",
+        fontSize: "1.25rem",
+        fontWeight: "bold"
+    },
+    continueBtnStyles: {
+        position: "absolute",
+        top: "50%",
+        left: "40%",
         fontSize: "1.25rem",
         fontWeight: "bold"
     }
@@ -70,11 +84,17 @@ export default function ViewImportList(props: IProps) {
 
     const [isLoading, setIsLoading] = React.useState(false)
 
-    const [importMsg, setImportMsg] = React.useState('')
+    const [msgTxt, setMsgTxt] = React.useState('')
 
     const [listLoading, setListLoading] = React.useState(false)
 
-    const [isImport, setIsImport] = React.useState(true)
+    const [isImport, setIsImport] = React.useState(true);
+
+    const intialExportedFiles: any[] = [];
+
+    const [exportedFiles, setExportedFiles] = React.useState(intialExportedFiles);
+
+    const [hideTreeView, setHideTreeView] = React.useState(false)
 
     React.useEffect(() => {
         importList();
@@ -118,6 +138,7 @@ export default function ViewImportList(props: IProps) {
     function getOnChange(checked: boolean, nodes: RenderTree) {
         console.log("nodes ", nodes);
         var filesSelected = selectedFiles;
+        var exFiles: any[] = [];
         if (nodes) {
             filesPath.push(nodes);
         }
@@ -135,6 +156,7 @@ export default function ViewImportList(props: IProps) {
 
         array = array.filter((v, i) => array.indexOf(v) === i);
         var pathList = props.viewList;
+        console.log("path list", pathList)
         for (var i = 0; i < filesPath.length; i++) {
             let index = 0;
             pathList.filter((element: any) => {
@@ -147,6 +169,7 @@ export default function ViewImportList(props: IProps) {
                             return item !== index
                         })
                     } else {
+
                         filesSelected.push(index);
                     }
 
@@ -161,6 +184,17 @@ export default function ViewImportList(props: IProps) {
 
 
         setSelected(array);
+
+        if (priButtonText == 'EXPORT SELECTED') {
+            filesSelected.map(function (val) {
+                return exFiles.push(pathList[val]);
+            });
+
+            setExportedFiles(exFiles);
+            console.log("Export list ::", exportedFiles)
+        }
+
+
     }
 
     const renderTree = (nodes: any) => (
@@ -261,8 +295,27 @@ export default function ViewImportList(props: IProps) {
 
     }
 
+    function priBtnSelected() {
+        if (priButtonText == 'IMPORT SELECTED') {
+            (async () => {
+                await importData();
+            })();
+
+        } else {
+            (async () => {
+                await exportData();
+            })();
+        }
+
+    }
+
+
+
     const importData = async () => {
+        console.log("In import Data");
+        setMsgTxt('');
         setIsLoading(true);
+        setHideTreeView(true);
         console.log("filtered result in import data :: ", selectedFiles);
         var msg: string = '';
         var count = 1;
@@ -272,20 +325,83 @@ export default function ViewImportList(props: IProps) {
                 body: JSON.stringify(dataToSend),
                 method: 'POST',
             });
-            msg = count + ' files have been successfull imported';
-            setImportMsg(msg);
+            msg = count + ' files have been successfull imported to';
+            setMsgTxt(msg);              
+            console.log("current message", msgTxt)
             count = count + 1;
             console.log(reply);
-        }));
-        setIsLoading(false);
+        }));                
     }
+
+    React.useEffect(() => {
+        let finalMsg;
+        if (priButtonText == 'IMPORT SELECTED') {
+
+         finalMsg = selectedFiles.length + ' files have been successfull imported to';
+        }else{
+            finalMsg = exportedFiles.length + ' files have been successfull exported to';
+        }
+        if (msgTxt == finalMsg) {
+            setIsLoading(false);
+        }
+        console.log("import msg", msgTxt);
+    }, [msgTxt]);
+
+    const exportData = async () => {
+        console.log("In export Data");
+        setMsgTxt('');
+        setIsLoading(true);
+        setHideTreeView(true);
+        console.log("export list values :: ", exportedFiles);
+        var msg: string = '';
+        var count = 1;
+        await Promise.all(exportedFiles.map(async (file) => {
+            const dataToSend = { UPLOAD_FILE_PATH: file, my_type: "upload" };
+            const reply = await requestAPI<any>('list_api', {
+                body: JSON.stringify(dataToSend),
+                method: 'POST',
+            });
+            msg = count + ' files have been successfull exported to';
+            setMsgTxt(msg);
+            count = count + 1;
+            console.log(reply);
+        }));        
+    }
+
+    const viewFunction = function (){
+        if (priButtonText == 'IMPORT SELECTED') {
+            window.open('http://localhost:8890/lab/tree/aiworkflow/cloud-imports/s3/ojastestbk1', "_self");    
+        }else{
+            setHideTreeView(false);
+            (async () => {
+                await importList();
+            })();
+        }
+    }
+
+    /*const changeJplabDir = async () => {
+        console.log("in changejp lab dir react function")
+        try {
+            await requestAPI<any>('change_dir');            
+        } catch (reason) {
+            console.error(`Unable to change jupyter lab working directory \n${reason}`);
+        }
+    }*/
+
+
 
     return (
 
         <div className={classes.divStyles}>
             {listLoading && <CircularProgress className={classes.overlayBox} color="primary" />}
             {isLoading && <CircularProgress className={classes.overlayBox} color="primary" />}
-            {isLoading && <Typography className={classes.importTextStyles}>{importMsg}</Typography>}
+            {hideTreeView && <Typography className={classes.importTextStyles}>{msgTxt}</Typography>}
+            {hideTreeView && <Button className={classes.viewBtnStyles} variant="contained" type="submit" color="primary" onClick={() => viewFunction()}>
+                View
+            </Button>}
+            {hideTreeView && <Button className={classes.continueBtnStyles} variant="contained" type="submit" color="primary" onClick={() => setHideTreeView(false)}>
+                Continue
+            </Button>}
             {isImport && <Typography style={{ fontSize: "1rem", fontWeight: "bold" }} variant="h6" align="left">
                 Connected to: Amazon S3
             </Typography>}
@@ -298,11 +414,11 @@ export default function ViewImportList(props: IProps) {
             <Button style={{ float: "left" }} type="submit" color="primary">
                 Disconnect
             </Button>
-            <Button style={isLoading ? { display: 'none' } : { float: "right" }} type="submit" color="primary" onClick={() => buttonSelected(selectionValueText)}>
+            <Button style={hideTreeView ? { display: 'none' } : { float: "right" }} type="submit" color="primary" onClick={() => buttonSelected(selectionValueText)}>
                 {secButtonText}
             </Button>
             <hr style={{ color: '#000000', backgroundColor: '#000000', height: .1, borderColor: '#000000', marginTop: '5em' }} />
-            <Button style={{ float: "right", marginBottom: "2em", marginTop: "0.1em" }} variant="contained" type="submit" color="primary" onClick={() => importData()}>
+            <Button style={{ float: "right", marginBottom: "2em", marginTop: "0.1em" }} variant="contained" type="submit" color="primary" onClick={() => priBtnSelected()}>
                 {priButtonText}
             </Button>
             <Grid item>
@@ -310,7 +426,7 @@ export default function ViewImportList(props: IProps) {
                     <RefreshIcon color="primary" />
                 </IconButton>
             </Grid>
-            <TreeView style={isLoading ? { display: 'none' } : {}}
+            <TreeView style={hideTreeView ? { display: 'none' } : {}}
                 defaultCollapseIcon={<MDBIcon far icon="folder-open" size="lg" />}
                 defaultExpanded={["0", "3", "4"]}
                 defaultExpandIcon={<MDBIcon icon="folder" size="lg" />}
