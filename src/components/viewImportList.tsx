@@ -15,7 +15,9 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 
 interface IProps {
     stateHandler: any,
-    viewList: any
+    viewList: any,
+    userName: string,
+    bucketName: string
 }
 const useStyles = makeStyles((theme) => ({
     checkboxstyles: {
@@ -96,7 +98,7 @@ export default function ViewImportList(props: IProps) {
 
     const [hideTreeView, setHideTreeView] = React.useState(false);
 
-   
+
 
     React.useEffect(() => {
         importList();
@@ -138,7 +140,7 @@ export default function ViewImportList(props: IProps) {
     }
 
     function getOnChange(checked: boolean, nodes: RenderTree) {
-        console.log("nodes ", nodes);
+        //console.log("nodes ", nodes);
         var filesSelected = selectedFiles;
         var exFiles: any[] = [];
         if (nodes) {
@@ -158,13 +160,13 @@ export default function ViewImportList(props: IProps) {
 
         array = array.filter((v, i) => array.indexOf(v) === i);
         var pathList = props.viewList;
-        console.log("path list", pathList)
+        //console.log("path list", pathList)
         for (var i = 0; i < filesPath.length; i++) {
             let index = 0;
             pathList.filter((element: any) => {
 
                 if (element.includes(filesPath[i].name)) {
-                    console.log("index value ", index);
+                    //console.log("index value ", index);
                     let existingindex = filesSelected.indexOf(index);
                     if (existingindex > -1) {
                         filesSelected = filesSelected.filter(function (item) {
@@ -227,6 +229,7 @@ export default function ViewImportList(props: IProps) {
     );
 
     const importList = async () => {
+        console.log("state values", props)
         setListLoading(true);
         props.stateHandler({
             page: 2,
@@ -322,26 +325,31 @@ export default function ViewImportList(props: IProps) {
         console.log("filtered result in import data :: ", selectedFiles);
         var msg: string = '';
         var count = 1;
-        await Promise.all(selectedFiles.map(async (file) => {
-            const dataToSend = { index: file, my_type: "download" };
-            const reply = await requestAPI<any>('list_api', {
-                body: JSON.stringify(dataToSend),
-                method: 'POST',
-            });
-            msg = count + ' files have been successfull imported to';
-            setMsgTxt(msg);              
-            console.log("current message", msgTxt)
-            count = count + 1;
-            console.log(reply);
-        }));                
+        try {
+            await Promise.all(selectedFiles.map(async (file) => {
+                const dataToSend = { index: file, my_type: "download" };
+                const reply = await requestAPI<any>('list_api', {
+                    body: JSON.stringify(dataToSend),
+                    method: 'POST',
+                });
+                msg = count + ' files have been successfull imported to';
+                setMsgTxt(msg);
+                console.log("current message", msgTxt)
+                count = count + 1;
+                console.log(reply);
+            }));
+        } catch (reason) {
+            setIsLoading(false);
+            console.error(`Unable to import  file \n${reason}`);
+        }
     }
 
     React.useEffect(() => {
         let finalMsg;
         if (priButtonText == 'IMPORT SELECTED') {
 
-         finalMsg = selectedFiles.length + ' files have been successfull imported to';
-        }else{
+            finalMsg = selectedFiles.length + ' files have been successfull imported to';
+        } else {
             finalMsg = exportedFiles.length + ' files have been successfull exported to';
         }
         if (msgTxt == finalMsg) {
@@ -358,27 +366,32 @@ export default function ViewImportList(props: IProps) {
         console.log("export list values :: ", exportedFiles);
         var msg: string = '';
         var count = 1;
-        await Promise.all(exportedFiles.map(async (file) => {
-            const dataToSend = { UPLOAD_FILE_PATH: file, my_type: "upload" };
-            const reply = await requestAPI<any>('list_api', {
-                body: JSON.stringify(dataToSend),
-                method: 'POST',
-            });
-            msg = count + ' files have been successfull exported to';
-            setMsgTxt(msg);
-            count = count + 1;
-            console.log(reply);
-        }));        
+        try {
+            await Promise.all(exportedFiles.map(async (file) => {
+                const dataToSend = { UPLOAD_FILE_PATH: file, my_type: "upload" };
+                const reply = await requestAPI<any>('list_api', {
+                    body: JSON.stringify(dataToSend),
+                    method: 'POST',
+                });
+                msg = count + ' files have been successfull exported to';
+                setMsgTxt(msg);
+                count = count + 1;
+                console.log(reply);
+            }));
+        } catch (reason) {
+            setIsLoading(false);
+            console.error(`Unable to export file \n${reason}`);
+        }
     }
 
-    const viewFunction = function (){
+    const viewFunction = function () {
         if (priButtonText == 'IMPORT SELECTED') {
             var url = window.location.href;
-            console.log("url is ::",url);
-            window.open(url+'/tree/aiworkflow/cloud-imports/s3/ojastestbk1','_blank');
-            
-           
-        }else{
+            console.log("url is ::", url);
+            window.open(url + '/tree/' + props.userName + '/cloud-imports/s3/' + props.bucketName, '_blank');
+
+
+        } else {
             setHideTreeView(false);
             (async () => {
                 await importList();
@@ -386,12 +399,12 @@ export default function ViewImportList(props: IProps) {
         }
     }
 
-    const disconnectProvider = async () => {        
+    const disconnectProvider = async () => {
         try {
-            await requestAPI<any>('disconnect'); 
-            props.stateHandler({                
+            await requestAPI<any>('disconnect');
+            props.stateHandler({
                 page: 0
-            });           
+            });
         } catch (reason) {
             console.error(`Unable to disconnect provider \n${reason}`);
         }
@@ -418,7 +431,7 @@ export default function ViewImportList(props: IProps) {
                 Connected to: DevCloud
             </Typography>}
             {isImport && <Typography style={{ fontSize: "1rem", fontWeight: "bold" }} variant="h6" align="left">
-                Bucket Name : ojastestbk1
+                Bucket Name : {props.bucketName}
             </Typography>}
             <Button style={{ float: "left" }} type="submit" color="primary" onClick={() => disconnectProvider()}>
                 Disconnect

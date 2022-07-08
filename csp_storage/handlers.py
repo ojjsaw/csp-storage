@@ -23,39 +23,6 @@ STORAGE_PATH = ""
 S3_KEYS = []
 IS_VALID = False
 
-
-class RouteHandler(APIHandler):
-    
-    @tornado.web.authenticated
-    def post(self):
-        # input_data is a dictionary with a key "name"
-        input_data = self.get_json_body()
-        global STORAGE_PATH, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, IS_VALID
-        ACCESS_KEY_ID = input_data["ACCESS_KEY_ID"]
-        SECRET_ACCESS_KEY = input_data["SECRET_ACCESS_KEY"]
-        BUCKET_NAME = input_data["BUCKET_NAME"]        
-        try:
-            # Retrieve the list of existing buckets
-            session = boto3.Session( 
-                aws_access_key_id=ACCESS_KEY_ID, 
-                aws_secret_access_key=SECRET_ACCESS_KEY)
-            
-            s3 = session.resource('s3')
-            if s3.Bucket(BUCKET_NAME) in s3.buckets.all():
-                IS_VALID = True
-        except ClientError as e:
-            #logging.error(e)
-            IS_VALID = False
-
-        current_user = getpass.getuser()        
-        if current_user == "build":
-            STORAGE_PATH = os.path.join("/data", "cloud-imports", "s3",BUCKET_NAME)
-        else:
-            STORAGE_PATH = os.path.join("/home", getpass.getuser(), "cloud-imports", "s3",BUCKET_NAME)
-
-        data = {"greetings": "Test full user Path {0} with creds {1}!".format(STORAGE_PATH, IS_VALID)}
-        self.finish(json.dumps(data))        
-
 class ListHandler(APIHandler):
 
     # The following decorator should be present on all verb methods (head, get, post,
@@ -207,7 +174,7 @@ class ConfigDetailsHandler(APIHandler):
             containsConfig = False
             IS_VALID = False
                     
-        data = {"isValid":IS_VALID,"containsConfig":containsConfig}
+        data = {"isValid":IS_VALID,"containsConfig":containsConfig,"username":getpass.getuser(),"bucketName":BUCKET_NAME}
            
         self.finish(json.dumps(data))
 
@@ -242,7 +209,7 @@ class ConfigDetailsHandler(APIHandler):
             IS_VALID = False
         STORAGE_PATH = os.path.join(CONFIG_PATH,BUCKET_NAME)
         LIST_PATH = os.path.join(getpass.getuser(), "cloud-imports", "s3",BUCKET_NAME)
-        data = {"isValid":IS_VALID }
+        data = {"isValid":IS_VALID ,"username":getpass.getuser(),"bucketName":BUCKET_NAME}
         self.finish(json.dumps(data))
 
 
@@ -272,14 +239,12 @@ class DisconnectProvider(APIHandler):
         os.remove(config_path)
         print("removed credentials file")
 
-
     
 def setup_handlers(web_app):
     host_pattern = ".*$"
 
     base_url = web_app.settings["base_url"]
-    handlers = [
-        (url_path_join(base_url, "csp-storage", "init_s3_api"), RouteHandler),
+    handlers = [        
         (url_path_join(base_url, "csp-storage", "list_api"), ListHandler),
         (url_path_join(base_url, "csp-storage", "config_api"), ConfigDetailsHandler),
         (url_path_join(base_url, "csp-storage", "export_list_api"), ExportListHandler),

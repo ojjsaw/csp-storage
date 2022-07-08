@@ -25,7 +25,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     restorer.add(introWidget, 'intropage');
     app.shell.add(introWidget, 'left', { rank: 1000 });    
-    //console.log("list of commands",app.commands.listCommands());       
+    console.log("list of commands",app.commands.listCommands());       
   }
 };
 

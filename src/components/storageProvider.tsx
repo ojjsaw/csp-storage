@@ -7,6 +7,8 @@ import FormControl from '@material-ui/core/FormControl';
 import FilledInput from '@material-ui/core/FilledInput';
 import CspDetails from './cspDetails';
 import ViewImportList from './viewImportList';
+import Tooltip from "@material-ui/core/Tooltip";
+import InfoIcon from '@material-ui/icons/Info';
 
 interface IProps {
     stateHandler: any
@@ -23,6 +25,9 @@ export default function StorageProvider(props: IProps) {
 
     const listValue: any[] = [];
 
+    var username='';
+    var bucketname='';
+
     function handleChange(event: any) {
         setProvider(event.target.value);
     };
@@ -31,8 +36,17 @@ export default function StorageProvider(props: IProps) {
 
         try {
             const data = await requestAPI<any>('config_api');
+            console.log("data value",data);
             if (data.isValid) {
                 setIsValid(true);
+                username = data.username;
+                bucketname = data.bucketName;
+               props.stateHandler({
+                    myval: JSON.stringify(data),
+                    page: 2,
+                    userName:data.username,
+                    bucketName:data.bucketName
+                });
             } else {
                 setIsValid(false);
             }
@@ -60,12 +74,17 @@ export default function StorageProvider(props: IProps) {
                             <option value={30} disabled>Google Cloud Storage</option>
                         </Select>
                     </FormControl>
-                </Grid>
+                </Grid>               
                 <Grid item>
                     {provider === "10" && <CspDetails stateHandler={props.stateHandler} />}
                 </Grid>
+                {provider === "10" && <Grid item style={{ marginTop: "1em" }} >
+                <Tooltip title="Make sure to use IAM user credentials with programmatic access and appropriate policies.See Creating IAM Users (console) for more information." placement="top">
+                <InfoIcon />
+              </Tooltip>
+                </Grid>}
             </div>
-            {provider === "10" && isValid && <ViewImportList stateHandler={props.stateHandler} viewList={listValue} />}
+            {provider === "10" && isValid && <ViewImportList stateHandler={props.stateHandler} viewList={listValue} userName={username} bucketName={bucketname}/>}
         </div>
 
     );

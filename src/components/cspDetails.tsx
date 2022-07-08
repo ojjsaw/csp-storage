@@ -26,11 +26,11 @@ class CspDetails extends Component<IProps> {
             <div>
                 <form noValidate autoComplete="off" onSubmit={this.OnCSPDetails}>
                     <Grid item>
-                        <InputLabel style={{ marginBottom: "1em",marginTop:"1em" }} shrink htmlFor="age-native-label-placeholder">AWS S3 Bucket Name</InputLabel>
+                        <InputLabel style={{ marginBottom: "1em", marginTop: "1em" }} shrink htmlFor="age-native-label-placeholder">AWS S3 Bucket Name</InputLabel>
                         <TextField required name="BUCKET_NAME" id="BUCKET_NAME" label="" variant="outlined" />
                     </Grid>
                     <Grid item>
-                        <InputLabel style={{ marginTop: "1em" }} shrink htmlFor="age-native-label-placeholder">AWS Access Key</InputLabel>
+                        <InputLabel style={{ marginTop: "1em" }} shrink htmlFor="age-native-label-placeholder">AWS Access Key </InputLabel>
                         <TextField required name="ACCESS_KEY_ID" id="ACCESS_KEY_ID" label="" variant="outlined" />
                     </Grid>
 
@@ -69,7 +69,9 @@ class CspDetails extends Component<IProps> {
             console.log(configResponse);
             this.props.stateHandler({
                 myval: JSON.stringify(configResponse),
-                page: 2
+                page: 2,
+                userName:configResponse.username,
+                bucketName:configResponse.bucketName
             });
         } catch (reason) {
             console.error(`config details cannot be saved \n${reason}`);

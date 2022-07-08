@@ -1,5 +1,4 @@
 import React from 'react';
-//import ReactDOM from 'react-dom';
 import { ReactWidget } from '@jupyterlab/apputils';
 import { PanelLayout } from '@lumino/widgets';
 import Typography from '@material-ui/core/Typography';
@@ -7,8 +6,6 @@ import Grid from '@material-ui/core/Grid/Grid';
 
 import StorageProvider from './storageProvider';
 import CspDetails from './cspDetails';
-import Tooltip from "@material-ui/core/Tooltip";
-import InfoIcon from '@material-ui/icons/Info';
 
 
 import ViewImportList from './viewImportList';
@@ -26,10 +23,12 @@ export interface IDataProps {
   showlist: boolean;
   page: PageType;
   listArray: Array<any>;
+  userName:string;
+  bucketName:string;
 }
 
-export class IntroComponent extends React.Component<IProps, IDataProps> { 
-  
+export class IntroComponent extends React.Component<IProps, IDataProps> {
+
 
   constructor(props: IProps) {
     super(props);
@@ -37,9 +36,11 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
       myval: 'hello',
       showlist: false,
       page: PageType.SelectCSP,
-      listArray: []
+      listArray: [],
+      userName:'',
+      bucketName:''
     };
-    this.stateHandler = this.stateHandler.bind(this);    
+    this.stateHandler = this.stateHandler.bind(this);
   }
 
   stateHandler = (val: any) => {
@@ -57,9 +58,8 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
       case PageType.CSPDetails:
         _renderTest = <CspDetails stateHandler={this.stateHandler}></CspDetails>;
         break;
-      case PageType.ViewImportList:
-        //_renderTest = <ViewList stateHandler={this.stateHandler} viewList={this.state.listArray}></ViewList>
-        _renderTest = <ViewImportList stateHandler={this.stateHandler} viewList={this.state.listArray}></ViewImportList>
+      case PageType.ViewImportList:       
+        _renderTest = <ViewImportList stateHandler={this.stateHandler} viewList={this.state.listArray} userName={this.state.userName} bucketName={this.state.bucketName}></ViewImportList>
         break;
       default:
         _renderTest = <div>hello</div>;
@@ -77,9 +77,7 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
 
           <Grid item>
             <Typography style={{ marginLeft: "1em" }} variant="h6" component="h1" gutterBottom>
-              Cloud Storage Connector <Tooltip title="Tooltip for info" placement="top">
-                            <InfoIcon />
-                        </Tooltip>
+              Cloud Storage Connector
             </Typography>
           </Grid>
 
