@@ -7,6 +7,8 @@ import Grid from '@material-ui/core/Grid/Grid';
 
 import StorageProvider from './storageProvider';
 import CspDetails from './cspDetails';
+import Tooltip from "@material-ui/core/Tooltip";
+import InfoIcon from '@material-ui/icons/Info';
 
 
 import ViewImportList from './viewImportList';
@@ -75,7 +77,9 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
 
           <Grid item>
             <Typography style={{ marginLeft: "1em" }} variant="h6" component="h1" gutterBottom>
-              Cloud Storage Connector
+              Cloud Storage Connector <Tooltip title="Tooltip for info" placement="top">
+                            <InfoIcon />
+                        </Tooltip>
             </Typography>
           </Grid>
 

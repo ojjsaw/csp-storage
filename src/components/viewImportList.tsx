@@ -94,7 +94,9 @@ export default function ViewImportList(props: IProps) {
 
     const [exportedFiles, setExportedFiles] = React.useState(intialExportedFiles);
 
-    const [hideTreeView, setHideTreeView] = React.useState(false)
+    const [hideTreeView, setHideTreeView] = React.useState(false);
+
+   
 
     React.useEffect(() => {
         importList();
@@ -296,6 +298,7 @@ export default function ViewImportList(props: IProps) {
     }
 
     function priBtnSelected() {
+        setIsLoading(true);
         if (priButtonText == 'IMPORT SELECTED') {
             (async () => {
                 await importData();
@@ -314,7 +317,7 @@ export default function ViewImportList(props: IProps) {
     const importData = async () => {
         console.log("In import Data");
         setMsgTxt('');
-        setIsLoading(true);
+        //setIsLoading(true);
         setHideTreeView(true);
         console.log("filtered result in import data :: ", selectedFiles);
         var msg: string = '';
@@ -350,7 +353,7 @@ export default function ViewImportList(props: IProps) {
     const exportData = async () => {
         console.log("In export Data");
         setMsgTxt('');
-        setIsLoading(true);
+        //setIsLoading(true);
         setHideTreeView(true);
         console.log("export list values :: ", exportedFiles);
         var msg: string = '';
@@ -370,7 +373,11 @@ export default function ViewImportList(props: IProps) {
 
     const viewFunction = function (){
         if (priButtonText == 'IMPORT SELECTED') {
-            window.open('http://localhost:8890/lab/tree/aiworkflow/cloud-imports/s3/ojastestbk1', "_self");    
+            var url = window.location.href;
+            console.log("url is ::",url);
+            window.open(url+'/tree/aiworkflow/cloud-imports/s3/ojastestbk1','_blank');
+            
+           
         }else{
             setHideTreeView(false);
             (async () => {
@@ -379,14 +386,16 @@ export default function ViewImportList(props: IProps) {
         }
     }
 
-    /*const changeJplabDir = async () => {
-        console.log("in changejp lab dir react function")
+    const disconnectProvider = async () => {        
         try {
-            await requestAPI<any>('change_dir');            
+            await requestAPI<any>('disconnect'); 
+            props.stateHandler({                
+                page: 0
+            });           
         } catch (reason) {
-            console.error(`Unable to change jupyter lab working directory \n${reason}`);
+            console.error(`Unable to disconnect provider \n${reason}`);
         }
-    }*/
+    }
 
 
 
@@ -411,7 +420,7 @@ export default function ViewImportList(props: IProps) {
             {isImport && <Typography style={{ fontSize: "1rem", fontWeight: "bold" }} variant="h6" align="left">
                 Bucket Name : ojastestbk1
             </Typography>}
-            <Button style={{ float: "left" }} type="submit" color="primary">
+            <Button style={{ float: "left" }} type="submit" color="primary" onClick={() => disconnectProvider()}>
                 Disconnect
             </Button>
             <Button style={hideTreeView ? { display: 'none' } : { float: "right" }} type="submit" color="primary" onClick={() => buttonSelected(selectionValueText)}>

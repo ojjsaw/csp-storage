@@ -23,24 +23,9 @@ STORAGE_PATH = ""
 S3_KEYS = []
 IS_VALID = False
 
-class NumpyArrayEncoder(JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, numpy.ndarray):
-            return obj.tolist()
-        return JSONEncoder.default(self, obj)
 
 class RouteHandler(APIHandler):
-    # The following decorator should be present on all verb methods (head, get, post,
-    # patch, put, delete, options) to ensure only authorized user can request the
-    # Jupyter server
-    @tornado.web.authenticated
-    def get(self):
-        # replace with is authenticated API
-        numpyArrayOne = numpy.array([[11, 22, 33], [44, 55, 66], [77, 88, 99]])
-        numpyData = {"array": numpyArrayOne}
-        encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
-        self.finish(encodedNumpyData)
-
+    
     @tornado.web.authenticated
     def post(self):
         # input_data is a dictionary with a key "name"
@@ -230,7 +215,7 @@ class ConfigDetailsHandler(APIHandler):
     @tornado.web.authenticated
     def post(self):        
         input_data = self.get_json_body()
-        global ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, STORAGE_PATH, IS_VALID,LIST_PATH
+        global ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, STORAGE_PATH, IS_VALID,LIST_PATH,CONFIG_PATH
         ACCESS_KEY_ID = input_data["ACCESS_KEY_ID"]
         SECRET_ACCESS_KEY = input_data["SECRET_ACCESS_KEY"]
         BUCKET_NAME = input_data["BUCKET_NAME"]
@@ -274,13 +259,18 @@ class ExportListHandler(APIHandler):
         print(paths)
         self.finish(json.dumps(paths))
 
-class ChangeJupterLabDir(APIHandler):
+class DisconnectProvider(APIHandler):
     
     @tornado.web.authenticated
     def get(self):
-        print("in jupter lab change directory function")           
-        
-        #os.chdir(os.path.join("/home/"+getpass.getuser(), "cloud-imports", "s3",BUCKET_NAME))   
+        current_user = getpass.getuser() 
+        if current_user == "build":
+            CONFIG_PATH = os.path.join("/data", "cloud-imports", "s3")
+        else:
+            CONFIG_PATH = os.path.join("/home", getpass.getuser(), "cloud-imports", "s3")
+        config_path= os.path.join(CONFIG_PATH,"config.txt")
+        os.remove(config_path)
+        print("removed credentials file")
 
 
     
@@ -293,6 +283,6 @@ def setup_handlers(web_app):
         (url_path_join(base_url, "csp-storage", "list_api"), ListHandler),
         (url_path_join(base_url, "csp-storage", "config_api"), ConfigDetailsHandler),
         (url_path_join(base_url, "csp-storage", "export_list_api"), ExportListHandler),
-        (url_path_join(base_url, "csp-storage", "change_dir"), ChangeJupterLabDir)
+        (url_path_join(base_url, "csp-storage", "disconnect"), DisconnectProvider)
         ]
     web_app.add_handlers(host_pattern, handlers)

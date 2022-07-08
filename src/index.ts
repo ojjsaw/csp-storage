@@ -1,5 +1,5 @@
 import {
-  ILayoutRestorer,
+  ILayoutRestorer,  
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
@@ -24,8 +24,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
     introWidget.id = 'intro-page-view';
 
     restorer.add(introWidget, 'intropage');
-    app.shell.add(introWidget, 'left', { rank: 1000 });
-
+    app.shell.add(introWidget, 'left', { rank: 1000 });    
+    //console.log("list of commands",app.commands.listCommands());       
   }
 };
 
