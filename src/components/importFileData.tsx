@@ -16,11 +16,11 @@ export var convertPath = function (pathList: any) {
       var path = path.replace('/home/', '');
       path.split('/').reduce((children: any, name: string) => {
         //console.log("childeren", name);
-        if(name != ""){
+        if (name != "") {
           let child = children.find((n: any) => n.name === name);
           if (!child) children.push(child = { name, id: String(++idvalue), children: [] });
           return child.children;
-        }        
+        }
 
       }, r);
       return r;

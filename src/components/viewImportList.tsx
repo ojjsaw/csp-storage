@@ -50,26 +50,33 @@ const useStyles = makeStyles((theme) => ({
     },
     viewBtnStyles: {
         position: "absolute",
-        top: "56%",
+        top: "60%",
         left: "15%",
         fontSize: "0.7rem",
         fontWeight: "bold"
     },
     continueBtnStyles: {
         position: "absolute",
-        top: "56%",
+        top: "60%",
         left: "40%",
         fontSize: "0.7rem",
         fontWeight: "bold"
     },
-    treeStyles:{
+    treeStyles: {
         "& .MuiTypography-body1": {
             fontSize: "0.85rem"
-            
+
         },
-        "& .fa-lg":{
-            fontSize:"1.1em"
+        "& .fa-lg": {
+            fontSize: "1.1em"
         }
+    },
+    folderTextStyles: {
+        position: "absolute",
+        top: "54%",
+        left: "15%",
+        fontSize: "0.8rem",
+        fontWeight: "bold"
     }
 }));
 export default function ViewImportList(props: IProps) {
@@ -110,6 +117,9 @@ export default function ViewImportList(props: IProps) {
 
     const [hideTreeView, setHideTreeView] = React.useState(false);
 
+    const [folderTxt, setFolderTxt] = React.useState('')
+
+    const [folderRoot, setFolderRoot] = React.useState('home')
 
 
     React.useEffect(() => {
@@ -152,7 +162,6 @@ export default function ViewImportList(props: IProps) {
     }
 
     function getOnChange(checked: boolean, nodes: RenderTree) {
-        //console.log("nodes ", nodes);
         var filesSelected = selectedFiles;
         var exFiles: any[] = [];
         if (nodes) {
@@ -177,7 +186,6 @@ export default function ViewImportList(props: IProps) {
             pathList.filter((element: any) => {
 
                 if (element.includes(filesPath[i].name)) {
-                    //console.log("index value ", index);
                     let existingindex = filesSelected.indexOf(index);
                     if (existingindex > -1) {
                         filesSelected = filesSelected.filter(function (item) {
@@ -208,8 +216,6 @@ export default function ViewImportList(props: IProps) {
             });
 
             setExportedFiles(exFiles);
-            console.log("selected export ", exFiles)
-            console.log("Export list ::", exportedFiles)
         }
 
 
@@ -243,7 +249,7 @@ export default function ViewImportList(props: IProps) {
     );
 
     const importList = async () => {
-        console.log("state values", props)
+        setFolderRoot('home');
         setListLoading(true);
         props.stateHandler({
             page: 2,
@@ -255,7 +261,6 @@ export default function ViewImportList(props: IProps) {
                 page: 2,
                 listArray: data
             });
-            console.log("list data ::", data);
         } catch (reason) {
             console.error(`The csp_storage server extension appears to be missing.\n${reason}`);
         }
@@ -276,6 +281,7 @@ export default function ViewImportList(props: IProps) {
 
     const exportList = async () => {
         setListLoading(true);
+        setFolderRoot('Root');
         props.stateHandler({
             page: 2,
             listArray: []
@@ -318,6 +324,7 @@ export default function ViewImportList(props: IProps) {
 
     function priBtnSelected() {
         setIsLoading(true);
+        setFolderTxt('');
         if (priButtonText == 'IMPORT FROM S3 BUCKET') {
             (async () => {
                 await importData();
@@ -340,17 +347,17 @@ export default function ViewImportList(props: IProps) {
         console.log("files selected for import :: ", selectedFiles);
         var msg: string = '';
         var count = 1;
+        setFolderTxt('DevCloud and are located in your ' + '/cloud-imports/s3/' + props.bucketName + ' folder')
         try {
             await Promise.all(selectedFiles.map(async (file) => {
                 const dataToSend = { index: file, my_type: "download" };
-                const reply = await requestAPI<any>('list_api', {
+                await requestAPI<any>('list_api', {
                     body: JSON.stringify(dataToSend),
                     method: 'POST',
                 });
-                msg = count + ' files have been successfull imported to';
+                msg = count + ' files have been successfully imported to';
                 setMsgTxt(msg);
                 count = count + 1;
-                console.log(reply);
             }));
         } catch (reason) {
             setIsLoading(false);
@@ -362,35 +369,35 @@ export default function ViewImportList(props: IProps) {
         let finalMsg;
         if (priButtonText == 'IMPORT FROM S3 BUCKET') {
 
-            finalMsg = selectedFiles.length + ' files have been successfull imported to';
+            finalMsg = selectedFiles.length + ' files have been successfully imported to';
         } else {
-            finalMsg = exportedFiles.length + ' files have been successfull exported to';
+            finalMsg = exportedFiles.length + ' files have been successfully exported to';
         }
         if (msgTxt == finalMsg) {
             setIsLoading(false);
             //setMsgTxt('');
         }
-        console.log("import msg", msgTxt);
     }, [msgTxt]);
 
     const exportData = async () => {
         setMsgTxt('');
         //setIsLoading(true);
         setHideTreeView(true);
+        setFolderTxt('S3 and are located in your /devcloud-exports folder');
         console.log("files selected for export is :: ", exportedFiles);
         var msg: string = '';
         var count = 1;
         try {
             await Promise.all(exportedFiles.map(async (file) => {
-                const dataToSend = { UPLOAD_FILE_PATH: file, my_type: "upload" };
-                const reply = await requestAPI<any>('list_api', {
+                var fileName = file.split("/").pop();
+                const dataToSend = { UPLOAD_FILE_PATH: file, my_type: "upload", FILENAME: fileName };
+                await requestAPI<any>('list_api', {
                     body: JSON.stringify(dataToSend),
                     method: 'POST',
                 });
-                msg = count + ' files have been successfull exported to';
+                msg = count + ' files have been successfully exported to';
                 setMsgTxt(msg);
                 count = count + 1;
-                console.log(reply);
             }));
         } catch (reason) {
             setIsLoading(false);
@@ -400,8 +407,7 @@ export default function ViewImportList(props: IProps) {
 
     const viewFunction = function () {
         if (priButtonText == 'IMPORT FROM S3 BUCKET') {
-            console.log("list of commands in view function", props.commands);
-            props.commands.execute('filebrowser:go-to-path', { 'path': '/cloud-imports/s3/'+props.bucketName }).catch((reason) => {
+            props.commands.execute('filebrowser:go-to-path', { 'path': '/cloud-imports/s3/' + props.bucketName }).catch((reason) => {
                 console.error(
                     `An error occurred during the execution of filebrowser:go-to-path command.\n${reason}`
                 );
@@ -433,6 +439,7 @@ export default function ViewImportList(props: IProps) {
             {listLoading && <CircularProgress className={classes.overlayBox} color="primary" />}
             {isLoading && <CircularProgress className={classes.overlayBox} color="primary" />}
             {hideTreeView && <Typography className={classes.importTextStyles}>{msgTxt}</Typography>}
+            {hideTreeView && msgTxt && <Typography className={classes.folderTextStyles}>{folderTxt}</Typography>}
             {hideTreeView && <Button className={classes.viewBtnStyles} variant="contained" type="submit" color="primary" onClick={() => viewFunction()}>
                 View
             </Button>}
@@ -448,14 +455,14 @@ export default function ViewImportList(props: IProps) {
             {isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold" }} variant="h6" align="left">
                 Bucket Name : {props.bucketName}
             </Typography>}
-            <Button style={{ float: "left",fontSize:"0.7rem" }} type="submit" color="primary" onClick={() => disconnectProvider()}>
+            <Button style={{ float: "left", fontSize: "0.7rem" }} type="submit" color="primary" onClick={() => disconnectProvider()}>
                 Disconnect
             </Button>
-            <Button style={hideTreeView ? { display: 'none' } : { float: "right",fontSize:"0.7rem" }} type="submit" color="primary" onClick={() => buttonSelected(selectionValueText)}>
+            <Button style={hideTreeView ? { display: 'none' } : { float: "right", fontSize: "0.7rem" }} type="submit" color="primary" onClick={() => buttonSelected(selectionValueText)}>
                 {secButtonText}
             </Button>
-            <hr style={{ color: '#000000', backgroundColor: '#000000', height: .1, borderColor: '#000000', marginTop: '5em' }} />
-            <Button style={{ float: "right", marginBottom: "2em", marginTop: "0.1em",fontSize:"0.7rem",width:"184px" }} variant="contained" type="submit" color="primary" onClick={() => priBtnSelected()}>
+            <hr style={{ color: '#000000', backgroundColor: '#000000', height: .1, borderColor: '#000000', marginTop: '3em' }} />
+            <Button disabled={hideTreeView} style={{ float: "right", marginBottom: "2em", marginTop: "0.5em", fontSize: "0.7rem", width: "184px" }} variant="contained" type="submit" color="primary" onClick={() => priBtnSelected()}>
                 {priButtonText}
             </Button>
             <Grid item>
@@ -470,7 +477,7 @@ export default function ViewImportList(props: IProps) {
             >
                 {renderTree({
                     id: "0",
-                    name: "home",
+                    name: folderRoot,
                     children: convertPath(props.viewList)
                 })}
             </TreeView>

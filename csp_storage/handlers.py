@@ -108,6 +108,7 @@ class ListHandler(APIHandler):
                 data = {"greetings": "fake download msg for index {0} with key {1}!".format(index, S3_KEYS[index])}            
         else:
             upload_src_path = input_data["UPLOAD_FILE_PATH"]
+            file_name = input_data["FILENAME"]
             if IS_VALID is True:
                 try:
                     # Retrieve the list of existing buckets
@@ -126,11 +127,11 @@ class ListHandler(APIHandler):
                         file_size = os.stat(upload_src_path).st_size
                         print("file size",file_size)                        
                         up_progress = progressbar.progressbar.ProgressBar(maxval=file_size)
-                        up_progress.start()
-                        filename = 'sample.txt'
+                        up_progress.start()                        
+                        print("file name :: ",file_name)
                         def upload_progress(chunk):
                             up_progress.update(up_progress.currval + chunk)                        
-                        s3.meta.client.upload_file(upload_src_path, BUCKET_NAME,'devcloud-exports/'+filename, Callback=upload_progress)
+                        s3.meta.client.upload_file(upload_src_path, BUCKET_NAME,'devcloud-exports/'+file_name, Callback=upload_progress)
                         up_progress.finish()
                         data = {"fileExported": upload_src_path,"exportStatus":"Success"}
                     else:

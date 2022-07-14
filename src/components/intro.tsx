@@ -70,16 +70,16 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
     }
 
     return (
-      <div style={{ height: '90vh',overflowX:'hidden',overflowY:'scroll' }}>
+      <div style={{ height: '90vh', overflowX: 'hidden', overflowY: 'scroll', width: '100%' }}>
         <Grid container
           spacing={10}
           direction="column"
           alignItems="center"
           justify="center"
-          style={{margin: '-30px', marginLeft: '-50px'}}>
+          style={{ margin: '-30px', marginLeft: '-70px' }}>
 
           <Grid item>
-            <Typography style={{ margin:"0px"}} variant="h6" component="h1" gutterBottom>
+            <Typography style={{ margin: "0px" }} variant="h6" component="h1" gutterBottom>
               Cloud Storage Connector
             </Typography>
           </Grid>

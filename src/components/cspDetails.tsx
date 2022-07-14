@@ -4,12 +4,26 @@ import InputLabel from '@material-ui/core/InputLabel/InputLabel';
 import Button from '@material-ui/core/Button';
 import { requestAPI } from '../handler';
 import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
 
 interface IProps {
     stateHandler: any
 }
+export enum PageType {
+    SelectCSP = 0,
+    CSPDetails = 1,
+    ViewImportList = 2
+}
+export interface IDataProps {
+    myval: string;
+    showlist: boolean;
+    page: PageType;
+    listArray: Array<any>;
+    errorMsg: string;
 
-class CspDetails extends Component<IProps> {
+}
+class CspDetails extends Component<IProps, IDataProps> {
+
 
     constructor(props: IProps) {
         super(props);
@@ -17,8 +31,10 @@ class CspDetails extends Component<IProps> {
             myval: 'hello',
             showlist: false,
             page: 0,
-            listArray: []
+            listArray: [],
+            errorMsg: ''
         };
+
     }
 
     render() {
@@ -44,6 +60,11 @@ class CspDetails extends Component<IProps> {
                             Connect
                         </Button>
                     </Grid>
+                    <div style={{ marginTop: "1em" }}>
+                        <Typography style={{ fontSize: "0.85rem", fontWeight: "bold", color: "red" }} variant="h6" align="left">
+                            {this.state.errorMsg}
+                        </Typography>
+                    </div>
                 </form>
             </div>
         );
@@ -52,8 +73,7 @@ class CspDetails extends Component<IProps> {
     OnCSPDetails: React.FormEventHandler<HTMLFormElement> = async (event) => {
 
         event.preventDefault();
-        const data = new FormData(event.currentTarget);
-        console.log(data.get('ACCESS_KEY_ID'));
+        const data = new FormData(event.currentTarget);        
         const dataToSend = {
             ACCESS_KEY_ID: data.get('ACCESS_KEY_ID'),
             SECRET_ACCESS_KEY: data.get('SECRET_ACCESS_KEY'),
@@ -65,14 +85,24 @@ class CspDetails extends Component<IProps> {
             const configResponse = await requestAPI<any>('config_api', {
                 body: JSON.stringify(dataToSend),
                 method: 'POST',
-            });
-            console.log(configResponse);
-            this.props.stateHandler({
-                myval: JSON.stringify(configResponse),
-                page: 2,
-                userName: configResponse.username,
-                bucketName: configResponse.bucketName
-            });
+            });           
+            if (configResponse.isValid) {
+                this.props.stateHandler({
+                    myval: JSON.stringify(configResponse),
+                    page: 2,
+                    userName: configResponse.username,
+                    bucketName: configResponse.bucketName
+                });
+            } else {
+                let val = {
+                    myval: 'hello',
+                    showlist: false,
+                    page: 0,
+                    listArray: [],
+                    errorMsg: 'Please enter valid AWS S3 Credentials'
+                };
+                this.setState(val);
+            }
         } catch (reason) {
             console.error(`config details cannot be saved \n${reason}`);
         }

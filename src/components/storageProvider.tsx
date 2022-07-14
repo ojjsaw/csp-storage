@@ -6,9 +6,8 @@ import { requestAPI } from '../handler';
 import FormControl from '@material-ui/core/FormControl';
 import CspDetails from './cspDetails';
 import ViewImportList from './viewImportList';
-import Tooltip from "@material-ui/core/Tooltip";
-import InfoIcon from '@material-ui/icons/Info';
 import { CommandRegistry } from '@lumino/commands';
+import Typography from "@material-ui/core/Typography";
 interface IProps {
     stateHandler: any,
     commands: CommandRegistry
@@ -36,7 +35,6 @@ export default function StorageProvider(props: IProps) {
 
         try {
             const data = await requestAPI<any>('config_api');
-            console.log("data value", data);
             if (data.isValid) {
                 setIsValid(true);
                 username = data.username;
@@ -57,6 +55,11 @@ export default function StorageProvider(props: IProps) {
 
     return (
         <div >
+            {provider === "10" && <div style={{ marginBottom: "3em" }}>
+                <Typography style={{ fontSize: "0.85rem", width: "236px" }} variant="h6" align="left">
+                    Make sure to use IAM user credentials with programmatic access and appropriate policies.<a style={{ color: "#106ba3" }} href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html#id_users_create_console" target="_blank">See Creating IAM Users (console)</a> for more information.
+                </Typography>
+            </div>}
             <div style={provider === "10" && isValid ? { display: 'none' } : {}}>
 
                 <Grid item>
@@ -80,11 +83,6 @@ export default function StorageProvider(props: IProps) {
                 <Grid item>
                     {provider === "10" && <CspDetails stateHandler={props.stateHandler} />}
                 </Grid>
-                {provider === "10" && <Grid item style={{ marginTop: "1em" }} >
-                    <Tooltip title="Make sure to use IAM user credentials with programmatic access and appropriate policies.See Creating IAM Users (console) for more information." placement="top">
-                        <InfoIcon />
-                    </Tooltip>
-                </Grid>}
             </div>
             {provider === "10" && isValid && <ViewImportList stateHandler={props.stateHandler} viewList={listValue} userName={username} bucketName={bucketname} commands={props.commands} />}
         </div>
