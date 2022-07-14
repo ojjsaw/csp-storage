@@ -59,7 +59,9 @@ setup_args = dict(
     install_requires=[
         "jupyter_server>=1.6,<2",
         "numpy",
-        "boto3"
+        "boto3",
+        "progressbar",
+        "glob2"
     ],
     zip_safe=False,
     include_package_data=True,

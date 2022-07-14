@@ -12,16 +12,19 @@ import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Typography from "@material-ui/core/Typography";
 import CircularProgress from '@material-ui/core/CircularProgress';
+import { CommandRegistry } from '@lumino/commands';
 
 interface IProps {
     stateHandler: any,
     viewList: any,
     userName: string,
-    bucketName: string
+    bucketName: string,
+    commands: CommandRegistry
+
 }
 const useStyles = makeStyles((theme) => ({
     checkboxstyles: {
-        "& .MuiSvgIcon-root": { fontSize: "0.85em", marginLeft: "0.25em" }
+        "& .MuiSvgIcon-root": { fontSize: "0.7em", marginLeft: "0.25em" }
     },
     divStyles: {
         width: "80%"
@@ -40,24 +43,33 @@ const useStyles = makeStyles((theme) => ({
     },
     importTextStyles: {
         position: "absolute",
-        top: "40%",
+        top: "50%",
         left: "15%",
-        fontSize: "1.25rem",
+        fontSize: "0.8rem",
         fontWeight: "bold"
     },
     viewBtnStyles: {
         position: "absolute",
-        top: "50%",
+        top: "56%",
         left: "15%",
-        fontSize: "1.25rem",
+        fontSize: "0.7rem",
         fontWeight: "bold"
     },
     continueBtnStyles: {
         position: "absolute",
-        top: "50%",
+        top: "56%",
         left: "40%",
-        fontSize: "1.25rem",
+        fontSize: "0.7rem",
         fontWeight: "bold"
+    },
+    treeStyles:{
+        "& .MuiTypography-body1": {
+            fontSize: "0.85rem"
+            
+        },
+        "& .fa-lg":{
+            fontSize:"1.1em"
+        }
     }
 }));
 export default function ViewImportList(props: IProps) {
@@ -68,7 +80,7 @@ export default function ViewImportList(props: IProps) {
 
     const filesPath: any[] = [];
 
-    const initialPriBtnTxt = 'IMPORT SELECTED';
+    const initialPriBtnTxt = 'IMPORT FROM S3 BUCKET';
 
     const [priButtonText, setPriButtonText] = React.useState(initialPriBtnTxt);
 
@@ -160,7 +172,6 @@ export default function ViewImportList(props: IProps) {
 
         array = array.filter((v, i) => array.indexOf(v) === i);
         var pathList = props.viewList;
-        //console.log("path list", pathList)
         for (var i = 0; i < filesPath.length; i++) {
             let index = 0;
             pathList.filter((element: any) => {
@@ -173,8 +184,10 @@ export default function ViewImportList(props: IProps) {
                             return item !== index
                         })
                     } else {
-
-                        filesSelected.push(index);
+                        var lastItem = pathList[index].split("/").pop();
+                        if (lastItem != "") {
+                            filesSelected.push(index);
+                        }
                     }
 
                 } index = index + 1;
@@ -189,12 +202,13 @@ export default function ViewImportList(props: IProps) {
 
         setSelected(array);
 
-        if (priButtonText == 'EXPORT SELECTED') {
+        if (priButtonText == 'EXPORT TO S3 BUCKET') {
             filesSelected.map(function (val) {
                 return exFiles.push(pathList[val]);
             });
 
             setExportedFiles(exFiles);
+            console.log("selected export ", exFiles)
             console.log("Export list ::", exportedFiles)
         }
 
@@ -249,7 +263,7 @@ export default function ViewImportList(props: IProps) {
     }
 
     const OnRefreshList = async () => {
-        if (priButtonText == 'IMPORT SELECTED') {
+        if (priButtonText == 'IMPORT FROM S3 BUCKET') {
             (async () => {
                 await importList();
             })();
@@ -280,11 +294,13 @@ export default function ViewImportList(props: IProps) {
     }
 
     function buttonSelected(btnName: any) {
+        setSelected([]);
+        setSelectedFiles([]);
         if (btnName == 'EXPORT') {
             (async () => {
                 await exportList();
             })();
-            setPriButtonText('EXPORT SELECTED');
+            setPriButtonText('EXPORT TO S3 BUCKET');
             setSecButtonText('IMPORT TO DEV CLOUD');
             setSelectionValueText('IMPORT');
             setIsImport(false);
@@ -292,7 +308,7 @@ export default function ViewImportList(props: IProps) {
             (async () => {
                 await importList();
             })();
-            setPriButtonText('IMPORT SELECTED');
+            setPriButtonText('IMPORT FROM S3 BUCKET');
             setSecButtonText('EXPORT TO THIS BUCKET');
             setSelectionValueText('EXPORT');
             setIsImport(true);
@@ -302,7 +318,7 @@ export default function ViewImportList(props: IProps) {
 
     function priBtnSelected() {
         setIsLoading(true);
-        if (priButtonText == 'IMPORT SELECTED') {
+        if (priButtonText == 'IMPORT FROM S3 BUCKET') {
             (async () => {
                 await importData();
             })();
@@ -318,11 +334,10 @@ export default function ViewImportList(props: IProps) {
 
 
     const importData = async () => {
-        console.log("In import Data");
         setMsgTxt('');
         //setIsLoading(true);
         setHideTreeView(true);
-        console.log("filtered result in import data :: ", selectedFiles);
+        console.log("files selected for import :: ", selectedFiles);
         var msg: string = '';
         var count = 1;
         try {
@@ -334,7 +349,6 @@ export default function ViewImportList(props: IProps) {
                 });
                 msg = count + ' files have been successfull imported to';
                 setMsgTxt(msg);
-                console.log("current message", msgTxt)
                 count = count + 1;
                 console.log(reply);
             }));
@@ -346,7 +360,7 @@ export default function ViewImportList(props: IProps) {
 
     React.useEffect(() => {
         let finalMsg;
-        if (priButtonText == 'IMPORT SELECTED') {
+        if (priButtonText == 'IMPORT FROM S3 BUCKET') {
 
             finalMsg = selectedFiles.length + ' files have been successfull imported to';
         } else {
@@ -354,16 +368,16 @@ export default function ViewImportList(props: IProps) {
         }
         if (msgTxt == finalMsg) {
             setIsLoading(false);
+            //setMsgTxt('');
         }
         console.log("import msg", msgTxt);
     }, [msgTxt]);
 
     const exportData = async () => {
-        console.log("In export Data");
         setMsgTxt('');
         //setIsLoading(true);
         setHideTreeView(true);
-        console.log("export list values :: ", exportedFiles);
+        console.log("files selected for export is :: ", exportedFiles);
         var msg: string = '';
         var count = 1;
         try {
@@ -385,12 +399,13 @@ export default function ViewImportList(props: IProps) {
     }
 
     const viewFunction = function () {
-        if (priButtonText == 'IMPORT SELECTED') {
-            var url = window.location.href;
-            console.log("url is ::", url);
-            window.open(url + '/tree/' + props.userName + '/cloud-imports/s3/' + props.bucketName, '_blank');
-
-
+        if (priButtonText == 'IMPORT FROM S3 BUCKET') {
+            console.log("list of commands in view function", props.commands);
+            props.commands.execute('filebrowser:go-to-path', { 'path': '/cloud-imports/s3/'+props.bucketName }).catch((reason) => {
+                console.error(
+                    `An error occurred during the execution of filebrowser:go-to-path command.\n${reason}`
+                );
+            });
         } else {
             setHideTreeView(false);
             (async () => {
@@ -424,23 +439,23 @@ export default function ViewImportList(props: IProps) {
             {hideTreeView && <Button className={classes.continueBtnStyles} variant="contained" type="submit" color="primary" onClick={() => setHideTreeView(false)}>
                 Continue
             </Button>}
-            {isImport && <Typography style={{ fontSize: "1rem", fontWeight: "bold" }} variant="h6" align="left">
+            {isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold" }} variant="h6" align="left">
                 Connected to: Amazon S3
             </Typography>}
-            {!isImport && <Typography style={{ fontSize: "1rem", fontWeight: "bold" }} variant="h6" align="left">
+            {!isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold" }} variant="h6" align="left">
                 Connected to: DevCloud
             </Typography>}
-            {isImport && <Typography style={{ fontSize: "1rem", fontWeight: "bold" }} variant="h6" align="left">
+            {isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold" }} variant="h6" align="left">
                 Bucket Name : {props.bucketName}
             </Typography>}
-            <Button style={{ float: "left" }} type="submit" color="primary" onClick={() => disconnectProvider()}>
+            <Button style={{ float: "left",fontSize:"0.7rem" }} type="submit" color="primary" onClick={() => disconnectProvider()}>
                 Disconnect
             </Button>
-            <Button style={hideTreeView ? { display: 'none' } : { float: "right" }} type="submit" color="primary" onClick={() => buttonSelected(selectionValueText)}>
+            <Button style={hideTreeView ? { display: 'none' } : { float: "right",fontSize:"0.7rem" }} type="submit" color="primary" onClick={() => buttonSelected(selectionValueText)}>
                 {secButtonText}
             </Button>
             <hr style={{ color: '#000000', backgroundColor: '#000000', height: .1, borderColor: '#000000', marginTop: '5em' }} />
-            <Button style={{ float: "right", marginBottom: "2em", marginTop: "0.1em" }} variant="contained" type="submit" color="primary" onClick={() => priBtnSelected()}>
+            <Button style={{ float: "right", marginBottom: "2em", marginTop: "0.1em",fontSize:"0.7rem",width:"184px" }} variant="contained" type="submit" color="primary" onClick={() => priBtnSelected()}>
                 {priButtonText}
             </Button>
             <Grid item>
@@ -448,7 +463,7 @@ export default function ViewImportList(props: IProps) {
                     <RefreshIcon color="primary" />
                 </IconButton>
             </Grid>
-            <TreeView style={hideTreeView ? { display: 'none' } : {}}
+            <TreeView className={classes.treeStyles} style={hideTreeView ? { display: 'none' } : {}}
                 defaultCollapseIcon={<MDBIcon far icon="folder-open" size="lg" />}
                 defaultExpanded={["0", "3", "4"]}
                 defaultExpandIcon={<MDBIcon icon="folder" size="lg" />}

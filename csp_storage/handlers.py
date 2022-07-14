@@ -11,7 +11,7 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 import logging
-import glob
+import glob2
 import os.path
 import progressbar
 import json
@@ -127,9 +127,10 @@ class ListHandler(APIHandler):
                         print("file size",file_size)                        
                         up_progress = progressbar.progressbar.ProgressBar(maxval=file_size)
                         up_progress.start()
+                        filename = 'sample.txt'
                         def upload_progress(chunk):
-                            up_progress.update(up_progress.currval + chunk)
-                        my_bucket.upload_file(upload_src_path, BUCKET_NAME, Callback=upload_progress)
+                            up_progress.update(up_progress.currval + chunk)                        
+                        s3.meta.client.upload_file(upload_src_path, BUCKET_NAME,'devcloud-exports/'+filename, Callback=upload_progress)
                         up_progress.finish()
                         data = {"fileExported": upload_src_path,"exportStatus":"Success"}
                     else:
@@ -219,9 +220,9 @@ class ExportListHandler(APIHandler):
     def get(self):
         current_user = getpass.getuser()
         if current_user == "build":
-            paths = glob.glob("/data"+"/**/*.*", recursive=True)
+            paths = glob2.glob("/data"+"/**/*.*", recursive=True)
         else:
-            paths = glob.glob("/home/"+getpass.getuser()+"/[!node_modules]*/**/*.*", recursive=True)
+            paths = glob2.glob("/home/"+getpass.getuser()+"/[!node_modules]*/**/*.*", recursive=True)
         print("Path list ::")        
         print(paths)
         self.finish(json.dumps(paths))

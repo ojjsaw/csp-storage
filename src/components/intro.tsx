@@ -9,8 +9,11 @@ import CspDetails from './cspDetails';
 
 
 import ViewImportList from './viewImportList';
+import { CommandRegistry } from '@lumino/commands';
 
-interface IProps { }
+interface IProps {
+  commands: CommandRegistry
+}
 
 export enum PageType {
   SelectCSP = 0,
@@ -23,12 +26,12 @@ export interface IDataProps {
   showlist: boolean;
   page: PageType;
   listArray: Array<any>;
-  userName:string;
-  bucketName:string;
+  userName: string;
+  bucketName: string;
+
 }
 
 export class IntroComponent extends React.Component<IProps, IDataProps> {
-
 
   constructor(props: IProps) {
     super(props);
@@ -37,8 +40,8 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
       showlist: false,
       page: PageType.SelectCSP,
       listArray: [],
-      userName:'',
-      bucketName:''
+      userName: '',
+      bucketName: ''
     };
     this.stateHandler = this.stateHandler.bind(this);
   }
@@ -53,13 +56,13 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
     let _renderTest;
     switch (pageState) {
       case PageType.SelectCSP:
-        _renderTest = <StorageProvider stateHandler={this.stateHandler}></StorageProvider>;
+        _renderTest = <StorageProvider stateHandler={this.stateHandler} commands={this.props.commands}></StorageProvider>;
         break;
       case PageType.CSPDetails:
         _renderTest = <CspDetails stateHandler={this.stateHandler}></CspDetails>;
         break;
-      case PageType.ViewImportList:       
-        _renderTest = <ViewImportList stateHandler={this.stateHandler} viewList={this.state.listArray} userName={this.state.userName} bucketName={this.state.bucketName}></ViewImportList>
+      case PageType.ViewImportList:
+        _renderTest = <ViewImportList stateHandler={this.stateHandler} viewList={this.state.listArray} userName={this.state.userName} bucketName={this.state.bucketName} commands={this.props.commands}></ViewImportList>
         break;
       default:
         _renderTest = <div>hello</div>;
@@ -67,16 +70,16 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
     }
 
     return (
-      <div >
+      <div style={{ height: '90vh',overflowX:'hidden',overflowY:'scroll' }}>
         <Grid container
           spacing={10}
           direction="column"
           alignItems="center"
           justify="center"
-          style={{ minHeight: '30vh' }}>
+          style={{margin: '-30px', marginLeft: '-50px'}}>
 
           <Grid item>
-            <Typography style={{ marginLeft: "1em" }} variant="h6" component="h1" gutterBottom>
+            <Typography style={{ margin:"0px"}} variant="h6" component="h1" gutterBottom>
               Cloud Storage Connector
             </Typography>
           </Grid>
@@ -91,16 +94,19 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
 
 export class IntroWidget extends ReactWidget {
 
-  constructor() {
+  private _commands: CommandRegistry;
+
+  constructor(commands: CommandRegistry) {
     super();
     this.addClass('intro-page-view');
+    this._commands = commands;
     this.layout = new PanelLayout();
   }
 
   render(): JSX.Element {
     return (
       <React.Fragment>
-        <IntroComponent />
+        <IntroComponent commands={this._commands} />
       </React.Fragment>
     );
   }
