@@ -23,6 +23,8 @@ STORAGE_PATH = ""
 S3_KEYS = []
 IS_VALID = False
 
+from .dirList import scanDirectory
+
 class ListHandler(APIHandler):
 
     # The following decorator should be present on all verb methods (head, get, post,
@@ -215,7 +217,8 @@ class ConfigDetailsHandler(APIHandler):
         self.finish(json.dumps(data))
 
 
-class ExportListHandler(APIHandler):
+class ExportListHandler(APIHandler):  
+        
    
     @tornado.web.authenticated
     def get(self):
@@ -224,9 +227,23 @@ class ExportListHandler(APIHandler):
             paths = glob2.glob("/data"+"/**/*.*", recursive=True)
         else:
             paths = glob2.glob("/home/"+getpass.getuser()+"/[!node_modules]*/**/*.*", recursive=True)
-        print("Path list ::")        
-        print(paths)
-        self.finish(json.dumps(paths))
+            basePath = "/home/"+getpass.getuser()
+            cpath = "/home/"+getpass.getuser() 
+            ignoreList = [cpath+'/csp',cpath+'/cloud-storage',cpath+'/miniconda3',cpath+'/.npm',cpath+'/.yarn',cpath+'/.cache',cpath+'/csp-storage/node_modules']    
+            pathList = []       
+            for i in scanDirectory(basePath,cpath,ignoreList):
+                pathList.append(i.path)
+                #print("File names after returning ::",i.path)
+            print("Path list values",pathList)
+             
+            #for entry in os.scandir(basePath):
+                #if entry.is_dir():
+                    #print("Directory name is :: ",entry.path)  
+                #print("File names",entry.path)                  
+                         
+        #print("Path list ::")        
+        #print(paths)
+        self.finish(json.dumps(pathList))
 
 class DisconnectProvider(APIHandler):
     

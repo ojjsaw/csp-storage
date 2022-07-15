@@ -1,6 +1,6 @@
 {
   "name": "csp-storage",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Intel DevCloud CSP Storage Connector Jupyterlab Extension.",
   "keywords": [
     "jupyter",
