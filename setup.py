@@ -60,8 +60,7 @@ setup_args = dict(
         "jupyter_server>=1.6,<2",
         "numpy",
         "boto3",
-        "progressbar",
-        "glob2"
+        "progressbar"
     ],
     zip_safe=False,
     include_package_data=True,

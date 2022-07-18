@@ -5,7 +5,7 @@ import {
 } from '@jupyterlab/application';
 
 import { IntroWidget } from './components/intro';
-import { IFileBrowserCommands } from '@jupyterlab/filebrowser';
+import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
 
 /**
@@ -16,7 +16,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
   autoStart: true,
   requires: [
     ILayoutRestorer,
-    IFileBrowserCommands
+    IFileBrowserFactory
   ],
   activate: async (app: JupyterFrontEnd, restorer: ILayoutRestorer) => {
     console.log('JupyterLab extension csp-storage is activated!');
@@ -27,18 +27,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     restorer.add(introWidget, 'intropage');
     app.shell.add(introWidget, 'left', { rank: 1000 });
-
-
-    /*app.commands.execute('filebrowser:go-to-path', { 'path': '/aiworkflow/cloud-imports/s3'}).catch((reason) => {
-
-      console.error(
-
-        `An error occurred during the execution of filebrowser:go-to-path command.\n${reason}`
-
-      );
-
-    });  */
-
 
   }
 

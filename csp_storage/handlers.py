@@ -11,7 +11,6 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 import logging
-import glob2
 import os.path
 import progressbar
 import json
@@ -224,25 +223,22 @@ class ExportListHandler(APIHandler):
     def get(self):
         current_user = getpass.getuser()
         if current_user == "build":
-            paths = glob2.glob("/data"+"/**/*.*", recursive=True)
+            #paths = glob2.glob("/data"+"/**/*.*", recursive=True)
+            basePath = "/data"
         else:
-            paths = glob2.glob("/home/"+getpass.getuser()+"/[!node_modules]*/**/*.*", recursive=True)
+            #paths = glob2.glob("/home/"+getpass.getuser()+"/[!node_modules]*/**/*.*", recursive=True)
             basePath = "/home/"+getpass.getuser()
-            cpath = "/home/"+getpass.getuser() 
-            ignoreList = [cpath+'/csp',cpath+'/cloud-storage',cpath+'/miniconda3',cpath+'/.npm',cpath+'/.yarn',cpath+'/.cache',cpath+'/csp-storage/node_modules']    
-            pathList = []       
-            for i in scanDirectory(basePath,cpath,ignoreList):
-                pathList.append(i.path)
-                #print("File names after returning ::",i.path)
-            print("Path list values",pathList)
-             
-            #for entry in os.scandir(basePath):
-                #if entry.is_dir():
-                    #print("Directory name is :: ",entry.path)  
-                #print("File names",entry.path)                  
-                         
-        #print("Path list ::")        
-        #print(paths)
+        cpath = basePath 
+        #ignoreList = [cpath+'/csp',cpath+'/cloud-storage',cpath+'/miniconda3',cpath+'/.npm',cpath+'/.yarn',cpath+'/.cache',cpath+'/csp-storage/node_modules']    
+        ignoreList = [cpath+'/.ipython',cpath+'/.intel',cpath+'/intel',cpath+'/.config',cpath+'/.bash_logout',cpath+'/.back_profile',cpath+'/.back_profile~',cpath+'/.back_profile~',cpath+'/.bash_history'
+        ,cpath+'/.cache',cpath+'/.comments',cpath+'/.viminfo',cpath+'/.virtual_documents',cpath+'/.npm',cpath+'/.imageio',cpath+'/.gnupg',cpath+'/.aws',cpath+'/.production',cpath+'/.ssh',cpath+'/.wget-hsts',
+        cpath+'/.workbench',cpath+'/.workbench',cpath+'/.ipynb_checkpoints',cpath+'/.jupyter',cpath+'/.jupyter',cpath+'/.keras',cpath+'/.local',cpath+'/.dev_cloud_service']
+        pathList = []       
+        for i in scanDirectory(basePath,cpath,ignoreList):
+            pathList.append(i.path)
+            #print("File names after returning ::",i.path)
+        print("Path list values",pathList)            
+        
         self.finish(json.dumps(pathList))
 
 class DisconnectProvider(APIHandler):
