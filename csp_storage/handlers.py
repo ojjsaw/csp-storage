@@ -19,6 +19,7 @@ ACCESS_KEY_ID = ""
 SECRET_ACCESS_KEY = ""
 BUCKET_NAME = ""
 STORAGE_PATH = ""
+CONFIG_PATH = ""
 S3_KEYS = []
 IS_VALID = False
 
@@ -31,7 +32,7 @@ class ListHandler(APIHandler):
     # Jupyter server
     @tornado.web.authenticated
     def get(self):
-        global STORAGE_PATH, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, IS_VALID, S3_KEYS
+        global STORAGE_PATH, ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, IS_VALID, S3_KEYS,CONFIG_PATH
         S3_KEYS.clear()
         if IS_VALID is True:
             try:
@@ -77,16 +78,20 @@ class ListHandler(APIHandler):
                     isExist = os.path.exists(STORAGE_PATH)
                     if not isExist:
                         os.makedirs(STORAGE_PATH)
-                    
-                    
-                    path, filename = os.path.split(S3_KEYS[index])
+                                        
+                    path, filename = os.path.split(S3_KEYS[index])                    
 
-                    devcloud_file_path = os.path.join(STORAGE_PATH, filename)
+                    devcloud_file_path = os.path.join(STORAGE_PATH, filename)                    
 
                     s3_client = boto3.client('s3',aws_access_key_id=ACCESS_KEY_ID, 
                     aws_secret_access_key=SECRET_ACCESS_KEY)
+
+                    if path != "":
+                        content_len = my_bucket.Object(path+'/'+filename).content_length
+                    else:
+                        content_len = my_bucket.Object(filename).content_length               
                     
-                    content_len = my_bucket.Object(path+'/'+filename).content_length
+                    
                     print("Content length ",content_len)
                     
 
@@ -147,7 +152,7 @@ class ConfigDetailsHandler(APIHandler):
 
     @tornado.web.authenticated
     def get(self):
-        global ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, IS_VALID, STORAGE_PATH,LIST_PATH        
+        global ACCESS_KEY_ID, SECRET_ACCESS_KEY, BUCKET_NAME, IS_VALID, STORAGE_PATH,LIST_PATH,CONFIG_PATH        
         current_user = getpass.getuser() 
         if current_user == "build":
             CONFIG_PATH = os.path.join("/data", "cloud-imports", "s3")
@@ -229,10 +234,10 @@ class ExportListHandler(APIHandler):
             #paths = glob2.glob("/home/"+getpass.getuser()+"/[!node_modules]*/**/*.*", recursive=True)
             basePath = "/home/"+getpass.getuser()
         cpath = basePath 
-        #ignoreList = [cpath+'/csp',cpath+'/cloud-storage',cpath+'/miniconda3',cpath+'/.npm',cpath+'/.yarn',cpath+'/.cache',cpath+'/csp-storage/node_modules']    
-        ignoreList = [cpath+'/.ipython',cpath+'/.intel',cpath+'/intel',cpath+'/.config',cpath+'/.bash_logout',cpath+'/.back_profile',cpath+'/.back_profile~',cpath+'/.back_profile~',cpath+'/.bash_history'
-        ,cpath+'/.cache',cpath+'/.comments',cpath+'/.viminfo',cpath+'/.virtual_documents',cpath+'/.npm',cpath+'/.imageio',cpath+'/.gnupg',cpath+'/.aws',cpath+'/.production',cpath+'/.ssh',cpath+'/.wget-hsts',
-        cpath+'/.workbench',cpath+'/.workbench',cpath+'/.ipynb_checkpoints',cpath+'/.jupyter',cpath+'/.jupyter',cpath+'/.keras',cpath+'/.local',cpath+'/.dev_cloud_service']
+        ignoreList = [cpath+'/csp',cpath+'/cloud-storage',cpath+'/miniconda3',cpath+'/.npm',cpath+'/.yarn',cpath+'/.cache',cpath+'/csp-storage/node_modules']    
+        #ignoreList = [cpath+'/.ipython',cpath+'/.intel',cpath+'/intel',cpath+'/.config',cpath+'/.bash_logout',cpath+'/.back_profile',cpath+'/.back_profile~',cpath+'/.back_profile~',cpath+'/.bash_history'
+        #,cpath+'/.cache',cpath+'/.comments',cpath+'/.viminfo',cpath+'/.virtual_documents',cpath+'/.npm',cpath+'/.imageio',cpath+'/.gnupg',cpath+'/.aws',cpath+'/.production',cpath+'/.ssh',cpath+'/.wget-hsts',
+        #cpath+'/.workbench',cpath+'/.workbench',cpath+'/.ipynb_checkpoints',cpath+'/.jupyter',cpath+'/.jupyter',cpath+'/.keras',cpath+'/.local',cpath+'/.dev_cloud_service']
         pathList = []       
         for i in scanDirectory(basePath,cpath,ignoreList):
             pathList.append(i.path)

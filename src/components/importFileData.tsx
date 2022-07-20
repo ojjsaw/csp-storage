@@ -13,12 +13,14 @@ export var convertPath = function (pathList: any) {
   //console.log("path list data ::",data);
   if (pathList) {
     var result = pathList.reduce((r: any, path: any) => {
+      var pathValue = path;
       var path = path.replace('/home/', '');
       path.split('/').reduce((children: any, name: string) => {
         //console.log("childeren", name);
+        //console.log("Path value ",pathValue);
         if (name != "") {
           let child = children.find((n: any) => n.name === name);
-          if (!child) children.push(child = { name, id: String(++idvalue), children: [] });
+          if (!child) children.push(child = { name, id: String(++idvalue), basePath: pathValue, children: [] });
           return child.children;
         }
 

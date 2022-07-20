@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme) => ({
         "& .MuiSvgIcon-root": { fontSize: "0.7em", marginLeft: "0.25em" }
     },
     divStyles: {
-        width: "80%"
+        width: "650px"
     },
     parentDisable: {
         display: "none"
@@ -36,6 +36,14 @@ const useStyles = makeStyles((theme) => ({
         position: "absolute",
         top: "30%",
         left: "40%",
+        transform: "translate(-50%, -50%)",
+        color: "blue",
+        opacity: .8,
+        zIndex: 1000
+    }, fileloading: {
+        position: "absolute",
+        top: "35%",
+        left: "20%",
         transform: "translate(-50%, -50%)",
         color: "blue",
         opacity: .8,
@@ -58,7 +66,7 @@ const useStyles = makeStyles((theme) => ({
     continueBtnStyles: {
         position: "absolute",
         top: "60%",
-        left: "40%",
+        left: "28%",
         fontSize: "0.7rem",
         fontWeight: "bold"
     },
@@ -69,6 +77,9 @@ const useStyles = makeStyles((theme) => ({
         },
         "& .fa-lg": {
             fontSize: "1.1em"
+        },
+        "& .MuiTreeView-root": {
+            marginLeft: "67px"
         }
     },
     folderTextStyles: {
@@ -119,11 +130,24 @@ export default function ViewImportList(props: IProps) {
 
     const [folderTxt, setFolderTxt] = React.useState('')
 
-    const [folderRoot, setFolderRoot] = React.useState('home')
+    const [folderRoot, setFolderRoot] = React.useState('Root')
 
 
     React.useEffect(() => {
         importList();
+        const timer = setTimeout(() => {
+            let el = document.getElementById('jp-left-stack');
+            let el2 = document.getElementById('jp-main-dock-panel');
+            if (el && el2) {
+                console.log("left stack width ::", el.style.width);
+                console.log("main dock panel width ::", el.style.width);
+                el.style.width = '655px';
+                el2.style.left = '655px';
+            }
+        }, 500)
+        return () => {
+            clearTimeout(timer)
+        }
     }, []);
 
 
@@ -181,11 +205,14 @@ export default function ViewImportList(props: IProps) {
 
         array = array.filter((v, i) => array.indexOf(v) === i);
         var pathList = props.viewList;
+        console.log("Path list ", pathList)
         for (var i = 0; i < filesPath.length; i++) {
             let index = 0;
+            console.log("file path ", filesPath);
             pathList.filter((element: any) => {
-
-                if (element.includes(filesPath[i].name)) {
+                //console.log("element value ",element)
+                if (element.toUpperCase() === filesPath[i].basePath.toUpperCase()) {
+                    console.log("Element selected is ::", element);
                     let existingindex = filesSelected.indexOf(index);
                     if (existingindex > -1) {
                         filesSelected = filesSelected.filter(function (item) {
@@ -202,7 +229,7 @@ export default function ViewImportList(props: IProps) {
             });
             //filesSelected.push(result);                       
         }
-
+        console.log("files selected index ", filesSelected);
         setSelectedFiles([]);
 
         setSelectedFiles(filesSelected);
@@ -249,7 +276,7 @@ export default function ViewImportList(props: IProps) {
     );
 
     const importList = async () => {
-        setFolderRoot('home');
+        setFolderRoot('Root');
         setListLoading(true);
         props.stateHandler({
             page: 2,
@@ -281,7 +308,7 @@ export default function ViewImportList(props: IProps) {
 
     const exportList = async () => {
         setListLoading(true);
-        setFolderRoot('Root');
+        setFolderRoot('home');
         props.stateHandler({
             page: 2,
             listArray: []
@@ -414,6 +441,10 @@ export default function ViewImportList(props: IProps) {
             });
         } else {
             setHideTreeView(false);
+            setPriButtonText('IMPORT FROM S3 BUCKET');
+            setSecButtonText('EXPORT TO THIS BUCKET');
+            setSelectionValueText('EXPORT');
+            setIsImport(true);
             (async () => {
                 await importList();
             })();
@@ -431,56 +462,64 @@ export default function ViewImportList(props: IProps) {
         }
     }
 
+    const continueFunction = function () {
+        setHideTreeView(false);
+        setSelected([]);
+        setSelectedFiles([]);
+    }
+
 
 
     return (
 
         <div className={classes.divStyles}>
             {listLoading && <CircularProgress className={classes.overlayBox} color="primary" />}
-            {isLoading && <CircularProgress className={classes.overlayBox} color="primary" />}
+            {isLoading && <CircularProgress className={classes.fileloading} color="primary" />}
             {hideTreeView && <Typography className={classes.importTextStyles}>{msgTxt}</Typography>}
             {hideTreeView && msgTxt && <Typography className={classes.folderTextStyles}>{folderTxt}</Typography>}
             {hideTreeView && <Button className={classes.viewBtnStyles} variant="contained" type="submit" color="primary" onClick={() => viewFunction()}>
                 View
             </Button>}
-            {hideTreeView && <Button className={classes.continueBtnStyles} variant="contained" type="submit" color="primary" onClick={() => setHideTreeView(false)}>
+            {hideTreeView && <Button className={classes.continueBtnStyles} variant="contained" type="submit" color="primary" onClick={() => continueFunction()}>
                 Continue
             </Button>}
-            {isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold" }} variant="h6" align="left">
+            {isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold", marginLeft: "3.7rem" }} variant="h6" align="left">
                 Connected to: Amazon S3
             </Typography>}
-            {!isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold" }} variant="h6" align="left">
+            {!isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold", marginLeft: "3.7rem" }} variant="h6" align="left">
                 Connected to: DevCloud
             </Typography>}
-            {isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold" }} variant="h6" align="left">
+            {isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold", marginLeft: "3.7rem" }} variant="h6" align="left">
                 Bucket Name : {props.bucketName}
             </Typography>}
-            <Button style={{ float: "left", fontSize: "0.7rem" }} type="submit" color="primary" onClick={() => disconnectProvider()}>
+            <Button style={{ float: "left", fontSize: "0.7rem", marginLeft: "3.4rem" }} type="submit" color="primary" onClick={() => disconnectProvider()}>
                 Disconnect
             </Button>
             <Button style={hideTreeView ? { display: 'none' } : { float: "right", fontSize: "0.7rem" }} type="submit" color="primary" onClick={() => buttonSelected(selectionValueText)}>
                 {secButtonText}
             </Button>
-            <hr style={{ color: '#000000', backgroundColor: '#000000', height: .1, borderColor: '#000000', marginTop: '3em' }} />
+            <hr style={{ color: '#000000', backgroundColor: '#000000', height: .1, borderColor: '#000000', marginTop: '3em', marginLeft: "3.3rem" }} />
             <Button disabled={hideTreeView} style={{ float: "right", marginBottom: "2em", marginTop: "0.5em", fontSize: "0.7rem", width: "184px" }} variant="contained" type="submit" color="primary" onClick={() => priBtnSelected()}>
                 {priButtonText}
             </Button>
-            <Grid item>
+            {!hideTreeView && <Grid item style={{ marginLeft: "3.3rem" }}>
                 <IconButton style={{ fontSize: "2rem" }} name="refreshList" onClick={() => OnRefreshList()}>
                     <RefreshIcon color="primary" />
                 </IconButton>
+            </Grid>}
+            <Grid item style={{ marginLeft: "4.4rem" }}>
+                <TreeView className={classes.treeStyles} style={hideTreeView ? { display: 'none' } : {}}
+                    defaultCollapseIcon={<MDBIcon far icon="folder-open" size="lg" />}
+                    defaultExpanded={["0", "3", "4"]}
+                    defaultExpandIcon={<MDBIcon icon="folder" size="lg" />}
+                >
+                    {renderTree({
+                        id: "0",
+                        name: folderRoot,
+                        children: convertPath(props.viewList)
+                    })}
+                </TreeView>
             </Grid>
-            <TreeView className={classes.treeStyles} style={hideTreeView ? { display: 'none' } : {}}
-                defaultCollapseIcon={<MDBIcon far icon="folder-open" size="lg" />}
-                defaultExpanded={["0", "3", "4"]}
-                defaultExpandIcon={<MDBIcon icon="folder" size="lg" />}
-            >
-                {renderTree({
-                    id: "0",
-                    name: folderRoot,
-                    children: convertPath(props.viewList)
-                })}
-            </TreeView>
         </div>
     );
 

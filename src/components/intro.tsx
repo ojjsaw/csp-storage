@@ -54,6 +54,7 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
   render() {
     const pageState = this.state.page;
     let _renderTest;
+
     switch (pageState) {
       case PageType.SelectCSP:
         _renderTest = <StorageProvider stateHandler={this.stateHandler} commands={this.props.commands}></StorageProvider>;
@@ -76,7 +77,7 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
           direction="column"
           alignItems="center"
           justify="center"
-          style={{ margin: '-30px', marginLeft: '-70px' }}>
+          style={{ width: 'calc(47% + 20px)' }}>
 
           <Grid item>
             <Typography style={{ margin: "0px" }} variant="h6" component="h1" gutterBottom>

@@ -43,16 +43,16 @@ class CspDetails extends Component<IProps, IDataProps> {
                 <form noValidate autoComplete="off" onSubmit={this.OnCSPDetails}>
                     <Grid item>
                         <InputLabel style={{ marginBottom: "1em", marginTop: "1em" }} shrink htmlFor="age-native-label-placeholder">AWS S3 Bucket Name<span style={{ color: "red" }}>*</span></InputLabel>
-                        <TextField required name="BUCKET_NAME" id="BUCKET_NAME" label="" variant="outlined" style={{ width: "110%" }} />
+                        <TextField required name="BUCKET_NAME" id="BUCKET_NAME" label="" variant="outlined" style={{ width: "90%" }} />
                     </Grid>
                     <Grid item>
                         <InputLabel style={{ marginTop: "1em", marginBottom: "1em" }} shrink htmlFor="age-native-label-placeholder">AWS Access Key<span style={{ color: "red" }}>*</span></InputLabel>
-                        <TextField required name="ACCESS_KEY_ID" id="ACCESS_KEY_ID" label="" variant="outlined" style={{ width: "110%" }} />
+                        <TextField required name="ACCESS_KEY_ID" id="ACCESS_KEY_ID" label="" variant="outlined" style={{ width: "90%" }} />
                     </Grid>
 
                     <Grid item>
                         <InputLabel style={{ marginTop: "1em", marginBottom: "1em" }} shrink htmlFor="age-native-label-placeholder">AWS Secret Key<span style={{ color: "red" }}>*</span></InputLabel>
-                        <TextField required name="SECRET_ACCESS_KEY" id="SECRET_ACCESS_KEY" label="" variant="outlined" type="password" style={{ width: "110%" }} />
+                        <TextField required name="SECRET_ACCESS_KEY" id="SECRET_ACCESS_KEY" label="" variant="outlined" type="password" style={{ width: "90%" }} />
                     </Grid>
 
                     <Grid item>
@@ -73,7 +73,7 @@ class CspDetails extends Component<IProps, IDataProps> {
     OnCSPDetails: React.FormEventHandler<HTMLFormElement> = async (event) => {
 
         event.preventDefault();
-        const data = new FormData(event.currentTarget);        
+        const data = new FormData(event.currentTarget);
         const dataToSend = {
             ACCESS_KEY_ID: data.get('ACCESS_KEY_ID'),
             SECRET_ACCESS_KEY: data.get('SECRET_ACCESS_KEY'),
@@ -85,7 +85,7 @@ class CspDetails extends Component<IProps, IDataProps> {
             const configResponse = await requestAPI<any>('config_api', {
                 body: JSON.stringify(dataToSend),
                 method: 'POST',
-            });           
+            });
             if (configResponse.isValid) {
                 this.props.stateHandler({
                     myval: JSON.stringify(configResponse),

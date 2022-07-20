@@ -16,6 +16,20 @@ export default function StorageProvider(props: IProps) {
 
     React.useEffect(() => {
         validateCredentials();
+        const timer = setTimeout(() => {
+            let el = document.getElementById('jp-left-stack');
+            let el2 = document.getElementById('jp-main-dock-panel');
+            if (el && el2) {
+                console.log("left stack width ::", el.style.width);
+                console.log("main dock panel width ::", el.style.width);
+                el.style.width = '430px';
+                el2.style.left = '430px';
+            }
+        }, 500)
+        return () => {
+            clearTimeout(timer)
+        }
+
     }, []);
 
     const [isValid, setIsValid] = React.useState(false)
@@ -55,15 +69,20 @@ export default function StorageProvider(props: IProps) {
 
     return (
         <div >
+            {provider != "10" && <div style={{ marginBottom: "3em" }}>
+                <Typography style={{ fontSize: "0.85rem", width: "315px" }} variant="h6" align="left">
+                    Select a cloud service provider and enter your credentials to import or export your code,models and data with DevCloud
+                </Typography>
+            </div>}
             {provider === "10" && <div style={{ marginBottom: "3em" }}>
-                <Typography style={{ fontSize: "0.85rem", width: "236px" }} variant="h6" align="left">
+                <Typography style={{ fontSize: "0.85rem", width: "315px" }} variant="h6" align="left">
                     Make sure to use IAM user credentials with programmatic access and appropriate policies.<a style={{ color: "#106ba3" }} href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html#id_users_create_console" target="_blank">See Creating IAM Users (console)</a> for more information.
                 </Typography>
             </div>}
             <div style={provider === "10" && isValid ? { display: 'none' } : {}}>
 
                 <Grid item>
-                    <FormControl variant="filled" style={{ margin: 1, minWidth: 120, width: "125%" }}>
+                    <FormControl variant="filled" style={{ margin: 1, minWidth: 120, width: "100%" }}>
                         <InputLabel id="test-select-label" style={{ margin: "-20px", marginLeft: "14px", minWidth: 120, width: "125%" }}>Service Provider</InputLabel>
                         <Select
                             native
@@ -75,8 +94,8 @@ export default function StorageProvider(props: IProps) {
                         >
                             <option value="" />
                             <option value={10}>Amazon Web Services S3</option>
-                            <option value={20} disabled>Azure Blob Storage</option>
-                            <option value={30} disabled>Google Cloud Storage</option>
+                            <option value={20} disabled>Azure Blob Storage(Coming Soon)</option>
+                            <option value={30} disabled>Google Cloud Storage(Coming Soon)</option>
                         </Select>
                     </FormControl>
                 </Grid>
