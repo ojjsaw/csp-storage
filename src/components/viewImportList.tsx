@@ -483,16 +483,16 @@ export default function ViewImportList(props: IProps) {
             {hideTreeView && <Button className={classes.continueBtnStyles} variant="contained" type="submit" color="primary" onClick={() => continueFunction()}>
                 Continue
             </Button>}
-            {isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold", marginLeft: "3.7rem" }} variant="h6" align="left">
+            {isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold", marginLeft: "4rem" }} variant="h6" align="left">
                 Connected to: Amazon S3
             </Typography>}
-            {!isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold", marginLeft: "3.7rem" }} variant="h6" align="left">
+            {!isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold", marginLeft: "4rem" }} variant="h6" align="left">
                 Connected to: DevCloud
             </Typography>}
-            {isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold", marginLeft: "3.7rem" }} variant="h6" align="left">
+            {isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold", marginLeft: "4rem" }} variant="h6" align="left">
                 Bucket Name : {props.bucketName}
             </Typography>}
-            <Button style={{ float: "left", fontSize: "0.7rem", marginLeft: "3.4rem" }} type="submit" color="primary" onClick={() => disconnectProvider()}>
+            <Button style={{ float: "left", fontSize: "0.7rem", marginLeft: "3.5rem" }} type="submit" color="primary" onClick={() => disconnectProvider()}>
                 Disconnect
             </Button>
             <Button style={hideTreeView ? { display: 'none' } : { float: "right", fontSize: "0.7rem" }} type="submit" color="primary" onClick={() => buttonSelected(selectionValueText)}>

@@ -77,7 +77,7 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
           direction="column"
           alignItems="center"
           justify="center"
-          style={{ width: 'calc(47% + 20px)' }}>
+          style={{ width: 'calc(70%)' }}>
 
           <Grid item>
             <Typography style={{ margin: "0px" }} variant="h6" component="h1" gutterBottom>
