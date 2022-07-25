@@ -135,7 +135,7 @@ export default function ViewImportList(props: IProps) {
 
     React.useEffect(() => {
         importList();
-        const timer = setTimeout(() => {
+        /*const timer = setTimeout(() => {
             let el = document.getElementById('jp-left-stack');
             let el2 = document.getElementById('jp-main-dock-panel');
             if (el && el2) {
@@ -147,7 +147,7 @@ export default function ViewImportList(props: IProps) {
         }, 500)
         return () => {
             clearTimeout(timer)
-        }
+        }*/
     }, []);
 
 
@@ -483,31 +483,31 @@ export default function ViewImportList(props: IProps) {
             {hideTreeView && <Button className={classes.continueBtnStyles} variant="contained" type="submit" color="primary" onClick={() => continueFunction()}>
                 Continue
             </Button>}
-            {isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold", marginLeft: "4rem" }} variant="h6" align="left">
+            {isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold", marginLeft: "4.5rem" }} variant="h6" align="left">
                 Connected to: Amazon S3
             </Typography>}
-            {!isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold", marginLeft: "4rem" }} variant="h6" align="left">
+            {!isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold", marginLeft: "4.5rem" }} variant="h6" align="left">
                 Connected to: DevCloud
             </Typography>}
-            {isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold", marginLeft: "4rem" }} variant="h6" align="left">
+            {isImport && <Typography style={{ fontSize: "0.85rem", fontWeight: "bold", marginLeft: "4.5rem" }} variant="h6" align="left">
                 Bucket Name : {props.bucketName}
             </Typography>}
-            <Button style={{ float: "left", fontSize: "0.7rem", marginLeft: "3.5rem" }} type="submit" color="primary" onClick={() => disconnectProvider()}>
+            <Button style={{ float: "left", fontSize: "0.7rem", marginLeft: "4rem" }} type="submit" color="primary" onClick={() => disconnectProvider()}>
                 Disconnect
             </Button>
             <Button style={hideTreeView ? { display: 'none' } : { float: "right", fontSize: "0.7rem" }} type="submit" color="primary" onClick={() => buttonSelected(selectionValueText)}>
                 {secButtonText}
             </Button>
-            <hr style={{ color: '#000000', backgroundColor: '#000000', height: .1, borderColor: '#000000', marginTop: '3em', marginLeft: "3.3rem" }} />
+            <hr style={{ color: '#000000', backgroundColor: '#000000', height: .1, borderColor: '#000000', marginTop: '3em', marginLeft: "3.7rem" }} />
             <Button disabled={hideTreeView} style={{ float: "right", marginBottom: "2em", marginTop: "0.5em", fontSize: "0.7rem", width: "184px" }} variant="contained" type="submit" color="primary" onClick={() => priBtnSelected()}>
                 {priButtonText}
             </Button>
-            {!hideTreeView && <Grid item style={{ marginLeft: "3.3rem" }}>
+            {!hideTreeView && <Grid item style={{ marginLeft: "4rem" }}>
                 <IconButton style={{ fontSize: "2rem" }} name="refreshList" onClick={() => OnRefreshList()}>
                     <RefreshIcon color="primary" />
                 </IconButton>
             </Grid>}
-            <Grid item style={{ marginLeft: "4.4rem" }}>
+            <Grid item style={{ marginLeft: "5rem" }}>
                 <TreeView className={classes.treeStyles} style={hideTreeView ? { display: 'none' } : {}}
                     defaultCollapseIcon={<MDBIcon far icon="folder-open" size="lg" />}
                     defaultExpanded={["0", "3", "4"]}

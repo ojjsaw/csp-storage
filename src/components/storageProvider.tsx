@@ -16,7 +16,7 @@ export default function StorageProvider(props: IProps) {
 
     React.useEffect(() => {
         validateCredentials();
-        const timer = setTimeout(() => {
+        /*const timer = setTimeout(() => {
             let el = document.getElementById('jp-left-stack');
             let el2 = document.getElementById('jp-main-dock-panel');
             if (el && el2) {
@@ -28,7 +28,7 @@ export default function StorageProvider(props: IProps) {
         }, 500)
         return () => {
             clearTimeout(timer)
-        }
+        }*/
 
     }, []);
 
@@ -69,12 +69,12 @@ export default function StorageProvider(props: IProps) {
 
     return (
         <div >
-            {provider != "10" && <div style={{ marginBottom: "3em" }}>
+            {provider != "10" && <div style={{ marginBottom: "3em",marginLeft:"5em" }}>
                 <Typography style={{ fontSize: "0.85rem", width: "315px" }} variant="h6" align="left">
                     Select a cloud service provider and enter your credentials to import or export your code,models and data with DevCloud
                 </Typography>
             </div>}
-            {provider === "10" && <div style={{ marginBottom: "3em" }}>
+            {provider === "10" && <div style={{ marginBottom: "3em",marginLeft:"5em" }}>
                 <Typography style={{ fontSize: "0.85rem", width: "315px" }} variant="h6" align="left">
                     Make sure to use IAM user credentials with programmatic access and appropriate policies.<a style={{ color: "#106ba3" }} href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html#id_users_create_console" target="_blank">See Creating IAM Users (console)</a> for more information.
                 </Typography>
@@ -82,7 +82,7 @@ export default function StorageProvider(props: IProps) {
             <div style={provider === "10" && isValid ? { display: 'none' } : {}}>
 
                 <Grid item>
-                    <FormControl variant="filled" style={{ margin: 1, minWidth: 120, width: "100%" }}>
+                    <FormControl variant="filled" style={{ margin: 1, minWidth: 120, width: "100%",marginLeft:"5em" }}>
                         <InputLabel id="test-select-label" style={{ margin: "-20px", marginLeft: "14px", minWidth: 120, width: "125%" }}>Service Provider</InputLabel>
                         <Select
                             native

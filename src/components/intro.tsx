@@ -71,7 +71,7 @@ export class IntroComponent extends React.Component<IProps, IDataProps> {
     }
 
     return (
-      <div style={{ height: '90vh', overflowX: 'hidden', overflowY: 'scroll', width: '100%' }}>
+      <div style={{ height: '90vh', overflowX: 'hidden', overflowY: 'scroll', width: '100%'}}>
         <Grid container
           spacing={10}
           direction="column"
